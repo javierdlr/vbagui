@@ -1,0 +1,87 @@
+Short:    GUI for VisualBoyAdvance for OS4
+UpLoader: 
+Author:   Vicente 'Ami603' Gimeno (Ami603 AT terra DOT es)
+Version:  1.07
+Type:     util/emu
+Requires: OS4, ReAction
+
+This is a ReAction-GUI for VisualBoyAdvance port made by Nicolas 'Nicomen' Mendoza
+
+This is my first upload to OS4Depot, and also my first usable project contributed to our
+community.Donations are welcome, you can made any donations (even less than 1 euro) 
+on my current homepage: http://www.terra.es/personal8/ami603.
+
+Of course  there will be more probabilities of me adding new features asked by those who contribute,
+but still, you are all free to ask. ;)
+
+Installation: Simply unpack it and copy the vbagui drawer to your preferred path.
+
+
+
+Release Notes:
+/************************************************************************/
+
+1.07
+Rebuild Using GCC 4.2.3.Most warnings removed.
+
+1.06
+Latest Rebuild.No Important Changes.Some GUI Relayouting.
+
+1.05
+Final Version.Hopefully it  will be enough for those that are using it.
+Debug page active.Also removed some output when using the default language,Thanks to LotoJet for reminding me ;)
+Cleared GFX status on some gadgets with actual loaded preferences
+New icon made.
+Added Contributed image from Spot
+
+1.04
+Added Localization support,Now includes a catalog descriptor file together with english catalog.Spanish language included by default.Error Messages not localized still.
+Enabled Debug Page,not very useful yet, but as the layout code was already there...
+
+1.03
+Changed the minimum required Application.library version,that will allow the public releases to run  this app.
+Changed a little and old joke that i forgot to remove.
+1.02
+Fixed a many moons old bug that caused problems when selecting files 
+other than on the main executable drawer.
+
+1.01
+
+First public version, 
+Now it does use Application.library for storing preferences easily.
+No debug options yet,although the page is already implemented,
+i've disabled it to allow a earlier release.Mind you, i have my own 
+wedding in less than 2 months, and maybe i won't code again in
+a reasonable amount of time.
+
+
+
+/************************************************************************/
+TODO:
+
+-Maybe using Application.library other than to store preferences,sort of a docky to allow you iconify/drag&drop games/whatever else.
+
+
+/************************************************************************/
+KNOWN BUGS:
+
+-none comes to mind
+
+/************************************************************************/
+DISCLAIMER:
+
+I take no responsibility of any kind because of using/abusing this software could cause 
+to both your system and/or important data.Use it at your own risk.
+This piece of software is released as freeware,you can redistribute it on any way 
+you want, as long as this readme still remains with the main archive.
+
+/************************************************************************/
+CREDITS:
+
+Vicente 'Ami603' Gimeno		-Gui coding.
+Nicolas 'Nicomen' Mendoza	-VisualBoyAdvance Porting,plus some help while learning ;)
+Kai 'Restore' Thorsberg		-Awesome looking logo.
+Spot						-Another nice looking logo.
+Tony 'ToAks' Aksnes			-boring guy who 'kindly asked me' for doing this gui.
+aGas Group.				-No Spanish Scene without them.
+
