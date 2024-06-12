@@ -1,492 +1,243 @@
 /*
-**	VisualBoy Advance GUI module
-**	Freeware software
-**	© 2005, by Vicente 'Ami603' Gimeno
-**	Bugs are also copyrighted, so take care ;)
-**
-**	V1.00 -.Initial Version, No prefs saving, no debug page
-**
-**	V1.01 -.First public version, Now it does use Application.library for storing preferences easily.No debug options yet,although the page is already implemented,
-**	i've disabled it to allow a earlier release.Mind you, i have my own wedding in less than 2 months, and maybe i won't code again in a reasonable amount of time.
-**
-**	V1.02 -.Fixed a many moons old bug that caused problems when selecting files other than on the main executable drawer.
-**
-**	V1.03 -. Changed the minimum required Application.library version,that will allow the public releases to run  this app.
-**	Changed a little and old joke that i forgot to remove.
-**
-**	V1.04 -. Locale Support Added,Error messages not localized, but you got the idea.
-**	Debug page is active, but not usable yet.
-**
-**	V1.05 -. Final Version.Hopefully it  will be enough for those that are using it.Debug page active.
-**	Also removed some output when using the default language.
-**	Cleared GFX status on some gadgets with actual loaded preferences
-**
-**	V1.06 -. Latest Rebuild.Almost no changes,Just some GFX relayouting.
-**
-**	V1.07 -. Latest Rebuild Using GCC 4.2.3.Most warnings removed.
+GUI.C
 */
 
-char *version_cookie __attribute__((used)) = "$VER:  VBA_GUI 1.07 (22.3.08)©2005-2008,Vicente'Ami603'Gimeno\n\0";
 
-#define ALL_REACTION_CLASSES
+//#define ALL_REACTION_CLASSES
 
 #include <proto/exec.h>
 #include <proto/dos.h>
 #include <proto/intuition.h>
 #include <proto/utility.h>
 #include <proto/application.h>
-#include <proto/locale.h>
+//#include <proto/locale.h>
+
 #include <libraries/gadtools.h>
+#include <classes/window.h>
+#include <classes/requester.h>
+#include <gadgets/clicktab.h>
+#include <gadgets/layout.h>
+#include <gadgets/button.h>
+#include <gadgets/checkbox.h>
+#include <gadgets/chooser.h>
+//#include <gadgets/string.h>
+#include <gadgets/space.h>
+#include <gadgets/integer.h>
+#include <gadgets/getfile.h>
+//#include <gadgets/slider.h>
+#include <gadgets/radiobutton.h>
+#include <images/label.h>
+#include <images/bitmap.h>
 
-#include <reaction/reaction.h>
-#include <reaction/reaction_macros.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
+//#include <strings.h>
 
 #include "vbagui_cat.h"
 
-/*
-**	Library and interfaces initialization
-*/
-
-struct Library				*ApplicationBase;
-struct Library				*LocaleBase;
-
-struct ApplicationIFace		*IApplication;
-struct PrefsObjectsIFace		*IPrefsObjects;
-struct LocaleIFace			*ILocale;
-
-struct Catalog *vbaguiCatalog;
-
-STRPTR Pages[5];
-STRPTR VideoModes[6] ; 
-STRPTR YUVModes[7] ; 
-STRPTR FilterModes[15]; 
-STRPTR FrameSkip[4] ;
-STRPTR SpeedLabel[4] ;
-STRPTR IFBlending[4];
-STRPTR GdbProto[4] ;
-STRPTR Verbose[11];
-
-STRPTR FlashSize[3] ;
-STRPTR Save[7] ;
-
-/*
-**	Enumeration of Gadgets/Objects needed
-*/
-
-enum
-{
-	GID_MAIN=0,
-	GID_VIDEO,
-	GID_YUV,
-	GID_FILTER,
-	GID_FSKIP,
-	GID_FSKIPSET,
-	GID_THROTTLE,
-	GID_THROTTLESET,
-	GID_SPEED,
-	GID_IFBLEND,
-	GID_PWINAC,
-	
-	GID_GDBPROTO,
-	GID_GDBPORT,
-	GID_DEBUG,
-	GID_VERBOSE,
-	GID_AGBPRINT,	
-
-	GID_EXE,
-	GID_GAME,
-	GID_BIOS,
-	GID_FLASH,
-	GID_SAVE,
-	GID_MMX,
-	GID_IPS,
-	GID_IPSFILE,
-	GID_RTC,
-
-	GID_SAVECONF,
-	GID_PLAY,
-	GID_QUIT,
-	
-	GID_LAST
-};
-
-enum
-{
-	WID_MAIN=0,
-	WID_LAST
-};
-enum
-{
-	OID_MAIN=0,
-	OID_CLICKTAB,
-	OID_ABOUT,
-	OID_PAGE1,
-	OID_PAGE2,
-	OID_PAGE3,
-	OID_PAGE4,
-	OID_REQ,
-	OID_LAST
-};
-
-struct MsgPort *VBAPort;
-struct Screen *scr;
-struct Window *window[WID_LAST];
-Object *gadget[GID_LAST];
-Object *object[OID_LAST];
-
-void parse_commandline(void) ;
-void destroy_objects(void);
-
-/*
-**	Visual Options Parser.
-*/
+#include "vbagui_rev.h"
+#include "includes.h"
+#include "debug.h"
 
 
-STRPTR video[] = {"--video-1x ",	"--video-2x ","--video-3x ","--video-4x ","--fullscreen ", NULL};
-STRPTR yuv[] = {" ","--yuv=0 ","--yuv=1 ","--yuv=2 ","--yuv=3 ","--yuv=4 ",NULL};
-STRPTR filter[] = {"--filter-normal ","--filter-tv-mode ","--filter-2xsai ","--filter-super-2xsai ","--filter-super-eagle ","--filter-pixelate ","--filter-motion-blur ",
-			"--filter-advmame ","--filter-simple2x ","--filter-bilinear ","--filter-bilinear+ ","--filter-scanlines ","--filter-hq2x ","--filter-lq2x ",NULL};
+extern void parse_commandline(void);
 
-STRPTR fskip[] = {"--auto-frameskip ","--frameskip=","--no-auto-frameskip ",	NULL};
-STRPTR throt[] ={"--no-throttle ",	"--throttle=",NULL};
-STRPTR ifb[] = {	"--ifb-none ","--ifb-motion-blur ",	"--ifb-smart ",NULL};
-STRPTR pwi[] = {"--no-pause-when-inactive ","--pause-when-inactive ",NULL};
-STRPTR sspeed[] = {"--no-show-speed ","--show-speed-normal ","--show-speed-detailed ",NULL};
+//extern struct ExecIFace *IExec;
+//extern struct DOSIFace *IDOS;
+extern struct ApplicationIFace *IApplication;
+extern struct PrefsObjectsIFace *IPrefsObjects;
+//extern struct IconIFace *IIcon;
+extern struct IntuitionIFace *IIntuition;
+//extern struct GraphicsIFace *IGraphics;
+extern struct UtilityIFace *IUtility;
+// the class pointer
+extern Class *ClickTabClass, *ListBrowserClass, *ButtonClass, *LabelClass, *GetFileClass,
+             *CheckBoxClass, *ChooserClass, *BitMapClass, *LayoutClass, *WindowClass,
+             *RequesterClass, *SpaceClass, *IntegerClass, *GetFileClass, *SliderClass,
+             *RadioButtonClass;
+// some interfaces needed
+//extern struct ListBrowserIFace *IListBrowser;
+//extern struct ClickTabIFace *IClickTab;
+//extern struct LayoutIFace *ILayout;
+//extern struct ChooserIFace *IChooser;
 
-/*
-**	Game Options Parser.
-*/
-
-STRPTR bios = "--bios=";
-
-BOOL gdbport=TRUE;
-STRPTR config = "--config=";
-
-STRPTR fsize[] = {"--flash-64k ","--flash-128k ",NULL};
-STRPTR savetype[] = {"--save-auto ","--save-eeprom ","--save-sram ","--save-flash ","--save-sensor ","--save-none ",NULL};
-STRPTR ipsptch[] = {" ","--ips=",NULL};
-STRPTR mmxen[] = {" ","--no-mmx ",	NULL};
-STRPTR rtcen[] = {"--no-rtc ","--rtc ",NULL};
-
-/*
-**	Debug options parser
-*/
-
-STRPTR agbprt[] = {"--no-agb-print ","--agb-print ",NULL};
-
-STRPTR verbose[] = {"-v 1 ","-v 2 ","-v 4 ","-v 8 ","-v 16 ","-v 32 ","-v 64 ","-v 128 ","-v 256 ","-v 512 ",NULL};
-STRPTR debug[] = {"--no-debug ","--debug ",NULL};
-STRPTR gdb[] = {"-G tcp ","-G tcp:","-G pipe ",NULL};
+extern struct FC_String vbagui_Strings[];
+extern struct MsgPort *VBAPort;
+extern struct Screen *scr;
 
 /*
 **	Application & preferences data.
 */
+//ULONG appID;
+extern PrefsObject *VBAPrefs;
 
-ULONG appID;
-PrefsObject *VBAPrefs;
+extern int videoptr,yuvptr,filterptr;
+extern int fskipptr,fskipvalue;
+extern int throttleptr,throttlevalue;
+extern int ifbptr,fsizeptr,pwiptr;
+extern int rtcptr,mmxptr,ipsptr;
+extern int sesptr,savetypeptr;
 
-int videoptr,yuvptr,filterptr;
-int fskipptr,fskipvalue;
-int throttleptr,throttlevalue;
-int ifbptr,fsizeptr,pwiptr;
-int rtcptr,mmxptr,ipsptr;
-int sesptr,savetypeptr;
+extern int port,agbptr,verboseptr,debugptr,gdbptr;
 
-int port,agbptr,verboseptr,debugptr,gdbptr;
-
-CONST_STRPTR gamefile;
-CONST_STRPTR biosfile;
-CONST_STRPTR exefile;
-CONST_STRPTR ipsfile;
-
+extern CONST_STRPTR gamefile;
+extern CONST_STRPTR biosfile;
+extern CONST_STRPTR exefile;
+extern CONST_STRPTR ipsfile;
 
 
+STRPTR Pages[5];
+STRPTR VideoModes[6];
+STRPTR YUVModes[7];
+STRPTR FilterModes[15];
+STRPTR FrameSkip[4];
+STRPTR SpeedLabel[4];
+STRPTR IFBlending[4];
+STRPTR GdbProto[4];
+STRPTR Verbose[11];
 
-/*
-**	Locale Strings
-*/
+STRPTR FlashSize[3];
+STRPTR Save[7];
 
-struct FC_String vbagui_Strings[80] = {
-	{ (STRPTR) "Acerca de...", 0 },
-	{ (STRPTR) "Opciones Visuales", 1 },
-	{ (STRPTR) "Opciones de Juego", 2 },
-	{ (STRPTR) "Opciones de Depuracion", 3 },
-	{ (STRPTR) "Modo de video", 4 },
-	{ (STRPTR) "Pantalla Completa", 5 },
-	{ (STRPTR) "Modo YUV", 6 },
-	{ (STRPTR) "Ninguno", 7 },
-	{ (STRPTR) "Filtros", 8 },
-	{ (STRPTR) "Modo Normal", 9 },
-	{ (STRPTR) "Modo TV", 10 },
-	{ (STRPTR) "2xSal", 11 },
-	{ (STRPTR) "Super 2xSal", 12 },
-	{ (STRPTR) "Super Eagle", 13 },
-	{ (STRPTR) "Pixelado", 14 },
-	{ (STRPTR) "Motion Blur", 15 },
-	{ (STRPTR) "AdvanceMAME escala 2x", 16 },
-	{ (STRPTR) "Simple 2x", 17 },
-	{ (STRPTR) "Bilinear", 18 },
-	{ (STRPTR) "Bilinear Mas", 19 },
-	{ (STRPTR) "Lineas de Scan", 20 },
-	{ (STRPTR) "Alta Calidad 2x", 21 },
-	{ (STRPTR) "Baja Calidad 2x", 22 },
-	{ (STRPTR) "Saltar Frames", 23 },
-	{ (STRPTR) "Automatico", 24 },
-	{ (STRPTR) "Personalizado", 25 },
-	{ (STRPTR) "Desactivado", 26 },
-	{ (STRPTR) "Activar Sacudida", 27 },
-	{ (STRPTR) "Blending entre Frames", 28 },
-	{ (STRPTR) "Ninguno", 29 },
-	{ (STRPTR) "Motion Blur", 30 },
-	{ (STRPTR) "Inteligente", 31 },
-	{ (STRPTR) "Pausar cuando Inactivo", 32 },
-	{ (STRPTR) "No Mostrar velocidad de emulacion", 33 },
-	{ (STRPTR) "Mostrar velocidad de emulacion", 34 },
-	{ (STRPTR) "Mostrar datos detallados de velocidad", 35 },
-	{ (STRPTR) "Ejecutable del programa", 36 },
-	{ (STRPTR) "Por favor seleccione un ejecutable valido de VBA", 37 },
-	{ (STRPTR) "Fichero de juego", 38 },
-	{ (STRPTR) "Por favor seleccione un fichero valido de juego", 39 },
-	{ (STRPTR) "Fichero BIOS", 40 },
-	{ (STRPTR) "Por favor seleccione un fichero valido de BIOS", 41 },
-	{ (STRPTR) "Tamaño de Flash", 42 },
-	{ (STRPTR) "Flash 64k", 43 },
-	{ (STRPTR) "Flash 128k", 44 },
-	{ (STRPTR) "Modo de Grabacion", 45 },
-	{ (STRPTR) "Automatico", 46 },
-	{ (STRPTR) "EEPROM", 47 },
-	{ (STRPTR) "SRAM", 48 },
-	{ (STRPTR) "FLASH", 49 },
-	{ (STRPTR) "EEPROM + Sensor", 50 },
-	{ (STRPTR) "Ninguno", 51 },
-	{ (STRPTR) "Activar Parcheo IPS", 52 },
-	{ (STRPTR) "Por favor seleccione un fichero valido de IPS", 53 },
-	{ (STRPTR) "Desactivar MMX", 54 },
-	{ (STRPTR) "Activar RTC", 55 },
-	{ (STRPTR) "Activar Depuracion", 56 },
-	{ (STRPTR) "Salida de Depuracion", 57 },
-	{ (STRPTR) "1-SWI", 58 },
-	{ (STRPTR) "2-Accesos a memoria no alineados", 59 },
-	{ (STRPTR) "4-Escritura a memoria ilegal", 60 },
-	{ (STRPTR) "8-Lectura de memoria ilegal", 61 },
-	{ (STRPTR) "16-DMA 0", 62 },
-	{ (STRPTR) "32-DMA 1", 63 },
-	{ (STRPTR) "64-DMA 2", 64 },
-	{ (STRPTR) "128-DMA 3", 65 },
-	{ (STRPTR) "256-Instruccion no definida", 66 },
-	{ (STRPTR) "512-Mensajes AGBPrint", 67 },
-	{ (STRPTR) "Protocolo GDB", 68 },
-	{ (STRPTR) "Puerto TCP por defecto", 69 },
-	{ (STRPTR) "Puerto TCP especifico", 70 },
-	{ (STRPTR) "Transporte por PIPE", 71 },
-	{ (STRPTR) "Activar AGBPrint", 72 },
-	{ (STRPTR) "Guardar", 73 },
-	{ (STRPTR) "Lanzar", 74 },
-	{ (STRPTR) "Salir", 75 },
-	{ (STRPTR) "Atencion!", 76 },
-	{ (STRPTR) "Por favor compruebe que ha seleccionado tanto el ejecutable\n del emulador como el fichero de juego antes de lanzar el emulador\n", 77 },
-	{ (STRPTR) "De Acuerdo", 78 },
-	{ (STRPTR) "1.07 AmigaOS4 Nativa\n\nCodigo: Vicente 'Ami603'Gimeno\nLogotipo: Kai 'Restore' Thorsberg,\nPort nativo OS4 de VisualBoy Advance:\nNicolas 'nicomen' Mendoza\n\nEste GUI 'Rapido y sucio' no hubiese\nvisto la luz del sol si Tony 'ToAks' Aksnes\nno me lo hubiese 'pedido amablemente' ;)\nSaludotes a aGas ;)\n" ,79 }
-};
-
-
+struct Window *window[WID_LAST];
+Object *gadget[GID_LAST];
+Object *object[OID_LAST];
 
 /*
-**	Libraries&interfaces Stuff
+**	Game Options Parser.
 */
+BOOL gdbport=TRUE;
 
-int openlibs(void)
-{
-	ApplicationBase = IExec->OpenLibrary("application.library", 50);
-	if (ApplicationBase)
-		{
-		IApplication  = (struct ApplicationIFace *)IExec->GetInterface(ApplicationBase, "application", 2, NULL);
-		IPrefsObjects = (struct PrefsObjectsIFace *)IExec->GetInterface(ApplicationBase, "prefsobjects", 2, NULL);
-		}
-	if (!IApplication || !IPrefsObjects)
-		{
-		IDOS->Printf("Error Obtaining Application.library interfaces\n");
-		return -1;
-		}
-	LocaleBase = IExec->OpenLibrary("locale.library",50);
-	if (LocaleBase)
-		{
-		ILocale = (struct LocaleIFace *)IExec->GetInterface(LocaleBase, "main",1,NULL);
-		}
-	if (!ILocale)
-		{
-		IDOS->Printf("Error Obtaining Locale.library interfaces\n");
-		return -1;
-		}
-
-	vbaguiCatalog = ILocale->OpenCatalog(NULL, (STRPTR) "vbagui.catalog",
-				     OC_BuiltInLanguage, "español",
-				     OC_Version, 0,
-				     TAG_DONE);
-
-	if (vbaguiCatalog)
-		{
-		struct FC_String *fc;
-		int i;
-		for (i = 0, fc = vbagui_Strings;  i < 80;  i++, fc++)
-			{
-			fc->msg = ILocale->GetCatalogStr(vbaguiCatalog, fc->id,(CONST_STRPTR) fc->msg);
-			}
-		}
-	return 0;
-}
-
-void closelibs(void)
-{
-	if (vbaguiCatalog)	ILocale->CloseCatalog(vbaguiCatalog);
-
-	if (IApplication)		IExec->DropInterface((struct Interface *)IApplication);
-	if (IPrefsObjects)		IExec->DropInterface((struct Interface *)IPrefsObjects);
-	if (ILocale)		IExec->DropInterface((struct Interface *)ILocale);
-
-	if (ApplicationBase)	IExec->CloseLibrary(ApplicationBase);
-	if (LocaleBase)		IExec->CloseLibrary(LocaleBase);
-}
 
 /*
 **	This is the function where we
 **	create all the layout objects.
 */
-
 int create_objects(void)
 {
-
 STRPTR Pages[] = { msg_about, msg_visual, msg_game, msg_debug, NULL}; 
 
 /*
 **	Visual Options
 */
-
-STRPTR VideoModes[] = { "Video 1X", "Video 2X", "Video 3X", "Video 4X", msg_fullscreen, NULL}; 
-STRPTR YUVModes[] = { msg_yuvnone, "YV12", "UYVY", "YVYU", "YUY2", "IYUV", NULL}; 
-STRPTR FilterModes[] = 
-{ 
-	msg_filter1,	msg_filter2, msg_filter3, msg_filter4, msg_filter5, msg_filter6, msg_filter7, msg_filter8,
-	msg_filter9, msg_filter10, msg_filter11, msg_filter12, msg_filter13,	msg_filter14,NULL
-}; 
-
-STRPTR FrameSkip[] = { msg_fskauto, msg_fskcustom, msg_fskdisab, NULL};
-STRPTR SpeedLabel[] = { msg_show1, msg_show2, msg_show3, NULL};
-STRPTR IFBlending[] = { msg_ifb1, msg_ifb2, msg_ifb3, NULL};
+STRPTR VideoModes[]  = { "Video 1X", "Video 2X", "Video 3X", "Video 4X", msg_fullscreen, NULL}; 
+STRPTR YUVModes[]    = { msg_yuvnone, "YV12", "UYVY", "YVYU", "YUY2", "IYUV", NULL}; 
+STRPTR FilterModes[] = { msg_filter1, msg_filter2, msg_filter3, msg_filter4, msg_filter5, msg_filter6, msg_filter7, msg_filter8,
+                         msg_filter9, msg_filter10, msg_filter11, msg_filter12, msg_filter13, msg_filter14, NULL}; 
+STRPTR FrameSkip[]   = { msg_fskauto, msg_fskcustom, msg_fskdisab, NULL};
+STRPTR SpeedLabel[]  = { msg_show1, msg_show2, msg_show3, NULL};
+STRPTR IFBlending[]  = { msg_ifb1, msg_ifb2, msg_ifb3, NULL};
 
 /*
 **	Debug Options
 */
-
 STRPTR GdbProto[] = { msg_gdbproto1, msg_gdbproto2, msg_gdbproto3, NULL};
-STRPTR Verbose[] = 
-{
-	msg_verbose1, msg_verbose2, msg_verbose3, msg_verbose4,msg_verbose5,
-	msg_verbose6,msg_verbose7,msg_verbose8,msg_verbose9,msg_verbose10,NULL
-};
+STRPTR Verbose[]  = { msg_verbose1, msg_verbose2, msg_verbose3, msg_verbose4, msg_verbose5,
+                      msg_verbose6, msg_verbose7, msg_verbose8, msg_verbose9, msg_verbose10, NULL};
 
 /*
 **	Game Options
 */
-
 STRPTR FlashSize[] = { msg_flash1, msg_flash2, NULL};
-STRPTR Save[] = { msg_savetype1, msg_savetype2, msg_savetype3, msg_savetype4, msg_savetype5, msg_savetype6, NULL};
+STRPTR Save[]      = { msg_savetype1, msg_savetype2, msg_savetype3, msg_savetype4, msg_savetype5, msg_savetype6, NULL};
 
-object[OID_ABOUT] = BitMapObject,
-					BITMAP_SourceFile,"PROGDIR:images/visual.png",
-					BITMAP_Transparent,TRUE,
-					BITMAP_Masking,TRUE,
-					BITMAP_Screen,scr,
-				BitMapEnd;
+object[OID_ABOUT] = IIntuition->NewObject(BitMapClass, NULL, //"bitmap.image",
+		BITMAP_SourceFile,  "PROGDIR:vba_banner.png",
+		BITMAP_Transparent, TRUE,
+		BITMAP_Masking,     TRUE,
+		BITMAP_Screen,      scr,
+		TAG_DONE);
 
-if (!object[OID_ABOUT])
+/*if (!object[OID_ABOUT])
 	{
 	IDOS->Printf("Cannot load program logo\n");
 	return -1;
-	}
+	}*/
+
 /*
 **	This is the first Page layout
 **	Where all program credits
 **	belongs to ;).
 */
-
-
-object[OID_PAGE1] = VLayoutObject,
-		LAYOUT_BevelStyle,      BVS_FIELD,
-		LAYOUT_AddChild,HLayoutObject,
-			LAYOUT_AddImage, LabelObject,
-				LABEL_Justification,LJ_CENTRE,
-				LABEL_Image,object[OID_ABOUT],
-			LabelEnd,
-		LAYOUT_AddChild,HLayoutObject,
-		LAYOUT_HorizAlignment,LALIGN_CENTER,
-			LAYOUT_AddImage, LabelObject,
-				LABEL_Justification,LJ_CENTRE,
-				LABEL_Text, msg_bigabout,
-			LabelEnd,
-		LayoutEnd,
-	LayoutEnd,
-End;
+object[OID_PAGE1] = IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+		LAYOUT_Orientation,    LAYOUT_ORIENT_VERT,
+		LAYOUT_BevelStyle,     BVS_FIELD,
+		LAYOUT_HorizAlignment, LALIGN_CENTER,
+		LAYOUT_AddImage, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+			//LABEL_Justification, LJ_CENTRE,
+			object[OID_ABOUT]? LABEL_Image : TAG_IGNORE, object[OID_ABOUT],
+		TAG_DONE),
+		LAYOUT_AddChild, IIntuition->NewObject(SpaceClass, NULL, TAG_DONE),
+		CHILD_WeightedHeight, 15,
+		LAYOUT_AddImage, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+			LABEL_Justification, LJ_CENTRE,
+			LABEL_SoftStyle, FSF_BOLD,
+			LABEL_Text,      VERS" "DATE,
+			LABEL_SoftStyle, FS_NORMAL,
+			LABEL_Text,      msg_bigabout,
+		TAG_DONE),
+		LAYOUT_AddChild, IIntuition->NewObject(SpaceClass, NULL, TAG_DONE),
+TAG_DONE);
 
 if (!object[OID_PAGE1])
 	{
-	IDOS->Printf("Cannot create 1st clicktab Page\n");
+	IDOS->Printf("Cannot create 1st Clicktab page\n");
 	return -1;
 	}
+
 /*
 **	This is the second Page layout
 **	All the Visual Options ends
 **	there.
 */
+object[OID_PAGE2] = IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
 
-object[OID_PAGE2] = HLayoutObject,
-		LAYOUT_HorizAlignment,LALIGN_CENTER,
-		LAYOUT_FixedVert,FALSE,
-		LAYOUT_FixedHoriz,FALSE,
-		LAYOUT_AddChild,VLayoutObject,
-			LAYOUT_AddChild,gadget[GID_VIDEO] = ChooserObject,
+//LAYOUT_AddChild, IIntuition->NewObject(SpaceClass, NULL, TAG_DONE),
+//CHILD_WeightedWidth, 15,
+
+	LAYOUT_AddChild, IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+		LAYOUT_Orientation,   LAYOUT_ORIENT_VERT,
+
+			LAYOUT_AddChild,gadget[GID_VIDEO] = IIntuition->NewObject(ChooserClass, NULL, //"chooser.gadget",
 				CHOOSER_LabelArray,VideoModes ,
 				GA_ID, GID_VIDEO,
 				GA_RelVerify,       TRUE,
 				CHOOSER_Selected,videoptr,
-			ChooserEnd,
-				CHILD_Label, LabelObject, 
-					LABEL_Text,msg_videomode, 
-				LabelEnd,
-			LAYOUT_AddChild,gadget[GID_YUV] = ChooserObject,
+			TAG_DONE),
+			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+				LABEL_Text,msg_videomode, 
+			TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_YUV] = IIntuition->NewObject(ChooserClass, NULL, //"chooser.gadget",
 				CHOOSER_LabelArray,YUVModes ,
 				GA_ID, GID_YUV,
 				GA_RelVerify,       TRUE,
 				CHOOSER_Selected,yuvptr,
-			ChooserEnd,
-				CHILD_Label, LabelObject, 
-					LABEL_Text, msg_yuv, 
-				LabelEnd,
-			LAYOUT_AddChild,gadget[GID_FILTER] = ChooserObject,
+			TAG_DONE),
+			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+				LABEL_Text, msg_yuv, 
+			TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_FILTER] = IIntuition->NewObject(ChooserClass, NULL, //"chooser.gadget",
 				CHOOSER_LabelArray,FilterModes ,
 				CHOOSER_MaxLabels,15,
 				CHOOSER_Selected,filterptr,
 				GA_ID, GID_FILTER,
 				GA_RelVerify,       TRUE,
-			ChooserEnd,
-				CHILD_Label, LabelObject, 
-					LABEL_Text, msg_filter, 
-				LabelEnd,
-			LAYOUT_AddChild,HLayoutObject,
-				LAYOUT_AddChild,gadget[GID_FSKIP] = ChooserObject,
+			TAG_DONE),
+			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+				LABEL_Text, msg_filter, 
+			TAG_DONE),
+
+			LAYOUT_AddChild, IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+				//LAYOUT_Orientation,    LAYOUT_ORIENT_VERT,
+//LAYOUT_BevelStyle, BVS_GROUP,
+				LAYOUT_AddChild,gadget[GID_FSKIP] = IIntuition->NewObject(ChooserClass, NULL, //"chooser.gadget",
 					CHOOSER_LabelArray,FrameSkip ,
 					CHOOSER_Selected,fskipptr,
 					GA_ID, GID_FSKIP,
 					GA_RelVerify,       TRUE,
-				ChooserEnd,
-					CHILD_Label, LabelObject, 
+				TAG_DONE),
+					CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
 						LABEL_Text, msg_fskip, 
-					LabelEnd,
-				LAYOUT_AddChild,gadget[GID_FSKIPSET] = IntegerObject,
+					TAG_DONE),
+				LAYOUT_AddChild,gadget[GID_FSKIPSET] = IIntuition->NewObject(IntegerClass, NULL, //"integer.gadget",
 					GA_RelVerify,TRUE,
 					GA_ID,GID_FSKIPSET,
 					GA_Disabled,(BOOL) !(fskipptr==1),
@@ -494,16 +245,24 @@ object[OID_PAGE2] = HLayoutObject,
 					INTEGER_Number,fskipvalue,
 					INTEGER_Minimum,0,
 					INTEGER_Arrows,TRUE,
-				IntegerEnd,
-			LayoutEnd,
-			LAYOUT_AddChild,HLayoutObject,
-				LAYOUT_AddChild,gadget[GID_THROTTLE] = CheckBoxObject,
+INTEGER_MinVisible, 3,
+INTEGER_MaxChars,   1,
+				TAG_DONE),
+				CHILD_WeightedWidth, 0,
+			TAG_DONE),
+			CHILD_WeightedHeight, 0,
+
+			LAYOUT_AddChild, IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+				//LAYOUT_Orientation,    LAYOUT_ORIENT_VERT,
+//LAYOUT_BevelStyle, BVS_GROUP,
+				LAYOUT_AddChild,gadget[GID_THROTTLE] = IIntuition->NewObject(CheckBoxClass, NULL, //"checkbox.gadget",
 					GA_RelVerify,       TRUE,
 					GA_Selected,(BOOL )throttleptr,
 					GA_ID,GID_THROTTLE,
 					GA_Text,msg_throttle,
-				CheckBoxEnd,
-				LAYOUT_AddChild,gadget[GID_THROTTLESET] = IntegerObject,
+CHECKBOX_TextPlace, PLACETEXT_LEFT,
+				TAG_DONE),
+				LAYOUT_AddChild,gadget[GID_THROTTLESET] = IIntuition->NewObject(IntegerClass, NULL, //"integer.gadget",
 					GA_RelVerify,TRUE,
 					GA_ID,GID_THROTTLESET,
 					GA_Disabled,(BOOL) !throttleptr,
@@ -511,39 +270,48 @@ object[OID_PAGE2] = HLayoutObject,
 					INTEGER_Number,throttlevalue,
 					INTEGER_Minimum,5,
 					INTEGER_Arrows,TRUE,
-				IntegerEnd,
-			LayoutEnd,
-		LayoutEnd,
-		LAYOUT_AddChild,VLayoutObject,
-			LAYOUT_AddChild,gadget[GID_IFBLEND] = ChooserObject,
+INTEGER_MinVisible, 5,
+INTEGER_MaxChars,   4,
+				TAG_DONE),
+				CHILD_WeightedWidth, 0,
+			TAG_DONE),
+			CHILD_WeightedHeight, 0,
+
+			LAYOUT_AddChild,gadget[GID_IFBLEND] = IIntuition->NewObject(ChooserClass, NULL, //"chooser.gadget",
 				CHOOSER_LabelArray, IFBlending,
 				GA_ID, GID_IFBLEND,
 				GA_RelVerify,       TRUE,
 				CHOOSER_Selected,ifbptr,
-			ChooserEnd,
-				CHILD_Label, LabelObject, 
+			TAG_DONE),
+				CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
 					LABEL_Text, msg_ifb, 
-				LabelEnd,
-			LAYOUT_AddChild,gadget[GID_PWINAC] = CheckBoxObject,
+				TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_PWINAC] = IIntuition->NewObject(CheckBoxClass, NULL, //"checkbox.gadget",
 				GA_RelVerify,       TRUE,
 				GA_ID,GID_PWINAC,
 				GA_Selected,(BOOL *)pwiptr,
 				GA_Text,msg_pwi,
-			CheckBoxEnd,
-			LAYOUT_AddChild,    gadget[GID_SPEED] = RadioButtonObject,
+//CHECKBOX_TextPlace, PLACETEXT_LEFT,
+			TAG_DONE),
+			LAYOUT_AddChild,    gadget[GID_SPEED] = IIntuition->NewObject(RadioButtonClass, NULL, //"radiobutton.gadget",
 				GA_Text,        SpeedLabel,
 				GA_RelVerify,	TRUE,
 				RADIOBUTTON_Selected,sesptr,
 				RADIOBUTTON_LabelPlace,PLACETEXT_RIGHT,
 				GA_ID,GID_SPEED,
+		TAG_DONE),
 
-			RadioButtonEnd,
-		LayoutEnd,
-	End;
+	TAG_DONE),
+	CHILD_WeightedHeight, 0,
+
+//LAYOUT_AddChild, IIntuition->NewObject(SpaceClass, NULL, TAG_DONE),
+//CHILD_WeightedWidth, 15,
+
+	TAG_DONE);
 
 if (!object[OID_PAGE2])
 	{
-	IDOS->Printf("Cannot create 2nd clicktab Page\n");
+	IDOS->Printf("Cannot create 2nd Clicktab page\n");
 	return -1;
 	}
 
@@ -552,100 +320,113 @@ if (!object[OID_PAGE2])
 **	Where all Gaming Options
 **	are about to appear.
 */
+object[OID_PAGE3] = IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+         //LAYOUT_Orientation,    LAYOUT_ORIENT_VERT,
 
-object[OID_PAGE3] = HLayoutObject,
-		LAYOUT_HorizAlignment,LALIGN_CENTER,
-		LAYOUT_FixedVert,FALSE,
-		LAYOUT_FixedHoriz,FALSE,
-		LAYOUT_AddChild,VLayoutObject,
-			LAYOUT_AddChild,gadget[GID_EXE] = GetFileObject,
+//LAYOUT_AddChild, IIntuition->NewObject(SpaceClass, NULL, TAG_DONE),
+//CHILD_WeightedWidth, 15,
+
+	LAYOUT_AddChild, IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+		LAYOUT_Orientation,   LAYOUT_ORIENT_VERT,
+
+			LAYOUT_AddChild,gadget[GID_EXE] = IIntuition->NewObject(GetFileClass, NULL, //"getfile.gadget",
 				GA_ID, GID_EXE,
 				GA_RelVerify,       TRUE,
 				GETFILE_ReadOnly,TRUE,
 				GETFILE_FullFile,exefile,
 				GETFILE_TitleText,msg_exeASL,
-			GetFileEnd,
-				CHILD_Label, LabelObject, 
-					LABEL_Text, msg_exe, 
-				LabelEnd,
-			LAYOUT_AddChild,gadget[GID_GAME] = GetFileObject,
+			TAG_DONE),
+			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+				LABEL_Text, msg_exe, 
+			TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_GAME] = IIntuition->NewObject(GetFileClass, NULL, //"getfile.gadget",
 				GA_ID, GID_GAME,
 				GA_RelVerify,       TRUE,
 				GETFILE_ReadOnly,TRUE,
 				GETFILE_FullFile,gamefile,
 				GETFILE_TitleText,msg_gameASL,
-			GetFileEnd,
-				CHILD_Label, LabelObject, 
-					LABEL_Text, msg_gamefile, 
-				LabelEnd,
-			LAYOUT_AddChild,gadget[GID_BIOS] = GetFileObject,
+			TAG_DONE),
+			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+				LABEL_Text, msg_gamefile, 
+			TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_BIOS] = IIntuition->NewObject(GetFileClass, NULL, //"getfile.gadget",
 				GA_ID, GID_BIOS,
 				GA_RelVerify,       TRUE,
 				GETFILE_ReadOnly,TRUE,
 				GETFILE_FullFile,biosfile,
 				GETFILE_TitleText,msg_biosASL,
-			GetFileEnd,
-				CHILD_Label, LabelObject, 
-					LABEL_Text, msg_biosfile, 
-				LabelEnd,
-			LAYOUT_AddChild,gadget[GID_FLASH] = ChooserObject,
+			TAG_DONE),
+			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+				LABEL_Text, msg_biosfile, 
+			TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_FLASH] = IIntuition->NewObject(ChooserClass, NULL, //"chooser.gadget",
 				CHOOSER_LabelArray,FlashSize ,
 				CHOOSER_Selected,fsizeptr,
 				GA_ID, GID_FLASH,
 				GA_RelVerify,       TRUE,
-			ChooserEnd,
-				CHILD_Label, LabelObject, 
-					LABEL_Text, msg_flash, 
-				LabelEnd,
-			LAYOUT_AddChild,gadget[GID_SAVE] = ChooserObject,
+			TAG_DONE),
+			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+				LABEL_Text, msg_flash, 
+			TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_SAVE] = IIntuition->NewObject(ChooserClass, NULL, //"chooser.gadget",
 				CHOOSER_LabelArray,Save,
 				CHOOSER_Selected,savetypeptr,
 				GA_ID, GID_SAVE,
 				GA_RelVerify,       TRUE,
-			ChooserEnd,
-				CHILD_Label, LabelObject, 
-					LABEL_Text, msg_savetype, 
-				LabelEnd,
-		LayoutEnd,
-		LAYOUT_AddChild,VLayoutObject,
-		LAYOUT_FixedVert,FALSE,
-		LAYOUT_FixedHoriz,FALSE,
-			LAYOUT_AddChild,HLayoutObject,
-				LAYOUT_AddChild,gadget[GID_IPS] = CheckBoxObject,
+			TAG_DONE),
+			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+				LABEL_Text, msg_savetype, 
+			TAG_DONE),
+
+			LAYOUT_AddChild, IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+				//LAYOUT_Orientation,    LAYOUT_ORIENT_VERT,
+//LAYOUT_BevelStyle, BVS_GROUP,
+				LAYOUT_AddChild,gadget[GID_IPS] = IIntuition->NewObject(CheckBoxClass, NULL, //"checkbox.gadget",
 					GA_RelVerify,       TRUE,
 					GA_ID,GID_IPS,
 					GA_Selected,(BOOL )ipsptr,
 					GA_Text,msg_ips,
-				CheckBoxEnd,
-				LAYOUT_AddChild,gadget[GID_IPSFILE] = GetFileObject,
+CHECKBOX_TextPlace, PLACETEXT_LEFT,
+				TAG_DONE),
+				CHILD_WeightedWidth, 0,
+				LAYOUT_AddChild,gadget[GID_IPSFILE] = IIntuition->NewObject(GetFileClass, NULL, //"getfile.gadget",
 					GA_Disabled,(BOOL )!ipsptr,
 					GA_RelVerify,TRUE,
 					GA_ID,GID_IPSFILE,
 					GETFILE_ReadOnly,TRUE,
 					GETFILE_FullFile,ipsfile,
 					GETFILE_TitleText,msg_ipsASL,
-				GetFileEnd,
-			LayoutEnd,
-			LAYOUT_AddChild,HLayoutObject,
-				LAYOUT_AddChild,gadget[GID_MMX] = CheckBoxObject,
-					GA_RelVerify,       TRUE,
-					GA_ID,GID_MMX,
-					GA_Text,msg_mmx,
-					GA_Selected,(BOOL *)mmxptr,
-				CheckBoxEnd,
-				LAYOUT_AddChild,gadget[GID_RTC] = CheckBoxObject,
-					GA_RelVerify,       TRUE,
-					GA_ID,GID_RTC,
+				TAG_DONE),
+			TAG_DONE),
+			CHILD_WeightedHeight, 0,
+			//CHILD_WeightedHeight, 0,
+
+			LAYOUT_AddChild,gadget[GID_MMX] = IIntuition->NewObject(CheckBoxClass, NULL, //"checkbox.gadget",
+				GA_RelVerify,       TRUE,
+				GA_ID,GID_MMX,
+				GA_Text,msg_mmx,
+				GA_Selected,(BOOL *)mmxptr,
+//CHECKBOX_TextPlace, PLACETEXT_LEFT,
+			TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_RTC] = IIntuition->NewObject(CheckBoxClass, NULL, //"checkbox.gadget",
+				GA_RelVerify,       TRUE,
+				GA_ID,GID_RTC,
 				GA_Selected,(BOOL *)rtcptr,
 				GA_Text,msg_rtc,
-			CheckBoxEnd,
-		LayoutEnd,
-	LayoutEnd,
-End;
+//CHECKBOX_TextPlace, PLACETEXT_LEFT,
+		TAG_DONE),
+
+	TAG_DONE),
+	CHILD_WeightedHeight, 0,
+
+//LAYOUT_AddChild, IIntuition->NewObject(SpaceClass, NULL, TAG_DONE),
+//CHILD_WeightedWidth, 15,
+
+TAG_DONE);
 
 if (!object[OID_PAGE3])
 	{
-	IDOS->Printf("Cannot create 3rd clicktab Page\n");
+	IDOS->Printf("Cannot create 3rd Clicktab page\n");
 	return -1;
 	}
 
@@ -653,41 +434,51 @@ if (!object[OID_PAGE3])
 **	Last, but not least, the fourth page
 **	Debug Options, going into the unknown
 */
+object[OID_PAGE4] = IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
 
-object[OID_PAGE4] = HLayoutObject,
-		LAYOUT_HorizAlignment,LALIGN_CENTER,
-		LAYOUT_FixedVert,FALSE,
-		LAYOUT_FixedHoriz,FALSE,
-		LAYOUT_AddChild,VLayoutObject,
-			LAYOUT_AddChild,gadget[GID_DEBUG] = CheckBoxObject,
+//LAYOUT_AddChild, IIntuition->NewObject(SpaceClass, NULL, TAG_DONE),
+//CHILD_WeightedWidth, 15,
+
+	LAYOUT_AddChild, IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+		LAYOUT_Orientation,   LAYOUT_ORIENT_VERT,
+			LAYOUT_AddChild,gadget[GID_DEBUG] = IIntuition->NewObject(CheckBoxClass, NULL, //"checkbox.gadget",
 				GA_RelVerify,       TRUE,
 				GA_ID,GID_DEBUG,
 				GA_Selected,(BOOL)debugptr,
 				GA_Text,msg_endebug,
-			CheckBoxEnd,
-			LAYOUT_AddChild,gadget[GID_VERBOSE] = ChooserObject,
+			TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_AGBPRINT] = IIntuition->NewObject(CheckBoxClass, NULL, //"checkbox.gadget",
+				GA_RelVerify,       TRUE,
+				GA_Disabled,(BOOL)!debugptr,
+				GA_ID,GID_AGBPRINT,
+				GA_Text,msg_agbprint,
+				GA_Selected,(BOOL)agbptr,
+			TAG_DONE),
+			LAYOUT_AddChild,gadget[GID_VERBOSE] = IIntuition->NewObject(ChooserClass, NULL, //"chooser.gadget",
 				CHOOSER_LabelArray,Verbose,
 				CHOOSER_Selected,verboseptr,
 				GA_Disabled,(BOOL)!debugptr,
 				GA_ID, GID_VERBOSE,
 				GA_RelVerify,       TRUE,
-			ChooserEnd,
-				CHILD_Label, LabelObject, 
-					LABEL_Text, msg_verbose, 
-				LabelEnd,
-			LAYOUT_AddChild,HLayoutObject,
-				LAYOUT_AddChild,gadget[GID_GDBPROTO] = ChooserObject,
+			TAG_DONE),
+			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+				LABEL_Text, msg_verbose, 
+			TAG_DONE),
+
+			LAYOUT_AddChild, IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+				//LAYOUT_Orientation,    LAYOUT_ORIENT_VERT,
+//LAYOUT_BevelStyle, BVS_GROUP,
+				LAYOUT_AddChild, gadget[GID_GDBPROTO] = IIntuition->NewObject(ChooserClass, NULL, //"chooser.gadget",
 					CHOOSER_LabelArray,GdbProto ,
 					CHOOSER_Selected,gdbptr,
 					GA_Disabled,(BOOL)!debugptr,
 					GA_ID, GID_GDBPROTO,
 					GA_RelVerify,       TRUE,
-
-				ChooserEnd,
-					CHILD_Label, LabelObject, 
-						LABEL_Text, msg_gdbproto, 
-					LabelEnd,
-				LAYOUT_AddChild,gadget[GID_GDBPORT] = IntegerObject,
+				TAG_DONE),
+				CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
+					LABEL_Text, msg_gdbproto, 
+				TAG_DONE),
+				LAYOUT_AddChild,gadget[GID_GDBPORT] = IIntuition->NewObject(IntegerClass, NULL, //"integer.gadget",
 					GA_RelVerify,TRUE,
 					GA_Disabled,!((BOOL)debugptr && (gdbptr==1)),
 					GA_ID,GID_GDBPORT,
@@ -695,23 +486,24 @@ object[OID_PAGE4] = HLayoutObject,
 					INTEGER_Number,port,
 					INTEGER_Minimum,0,
 					INTEGER_Arrows,TRUE,
-				IntegerEnd,
-			LayoutEnd,
-		LayoutEnd,
-		LAYOUT_AddChild,VLayoutObject,
-			LAYOUT_AddChild,gadget[GID_AGBPRINT] = CheckBoxObject,
-				GA_RelVerify,       TRUE,
-				GA_Disabled,(BOOL)!debugptr,
-				GA_ID,GID_AGBPRINT,
-				GA_Text,msg_agbprint,
-				GA_Selected,(BOOL)agbptr,
-			CheckBoxEnd,
-		LayoutEnd,
-	End;
+INTEGER_MinVisible, 6,
+INTEGER_MaxChars,   5,
+				TAG_DONE),
+				CHILD_WeightedWidth, 0,
+			TAG_DONE),
+			//CHILD_WeightedHeight, 0,
+
+		TAG_DONE),
+		CHILD_WeightedHeight, 0,
+
+//LAYOUT_AddChild, IIntuition->NewObject(SpaceClass, NULL, TAG_DONE),
+//CHILD_WeightedWidth, 15,
+
+	TAG_DONE);
 
 if (!object[OID_PAGE4])
 	{
-	IDOS->Printf("Cannot create 4th clicktab Page\n");
+	IDOS->Printf("Cannot create 4th Clicktab page\n");
 	return -1;
 	}
 
@@ -719,22 +511,21 @@ if (!object[OID_PAGE4])
 **	Now we made a grouped clicktab
 **	with all the previous pages
 */
-
-object[OID_CLICKTAB] = ClickTabObject,
+object[OID_CLICKTAB] = IIntuition->NewObject(ClickTabClass, NULL, //"clicktab.gadget",
 		GA_Text,            Pages,
 		CLICKTAB_Current,   0,
 		CLICKTAB_LabelTruncate,TRUE,
-		CLICKTAB_PageGroup, PageObject,
+		CLICKTAB_PageGroup, IIntuition->NewObject(NULL, "page.gadget",
 			PAGE_Add,       object[OID_PAGE1],
 			PAGE_Add,       object[OID_PAGE2],
 			PAGE_Add,       object[OID_PAGE3],
 			PAGE_Add,       object[OID_PAGE4],
-		ClickTabEnd,
-	End;
+		TAG_DONE),
+	TAG_DONE);
 
 if (!object[OID_CLICKTAB])
 	{
-	IDOS->Printf("Cannot create clicktab Object\n");
+	IDOS->Printf("Cannot create Clicktab object\n");
 	return -1;
 	}
 
@@ -743,66 +534,68 @@ if (!object[OID_CLICKTAB])
 **	with the last horizontal layout
 **	storing the most useful options ;).
 */
-
-object[OID_MAIN] = WindowObject,
+object[OID_MAIN] = IIntuition->NewObject(WindowClass, NULL, //"window.class",
 		WA_Title,           "VisualBoy Advance GUI",
 		WA_DragBar,         TRUE,
 		WA_SmartRefresh,    TRUE,
 		WA_CloseGadget,     TRUE,
 		WA_DepthGadget,     TRUE,
+WA_SizeGadget, TRUE,
 		WA_CustomScreen,scr,
 		WINDOW_IconifyGadget,TRUE,
 		WINDOW_AppPort,VBAPort,
 		WINDOW_Position, WPOS_CENTERSCREEN,
-		WINDOW_ParentGroup, VLayoutObject,
+		WINDOW_ParentGroup, IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+         LAYOUT_Orientation,    LAYOUT_ORIENT_VERT,
 			LAYOUT_HorizAlignment,LALIGN_CENTER,
 			LAYOUT_EvenSize,   FALSE,
-			LAYOUT_FixedVert,FALSE,
-			LAYOUT_FixedHoriz,FALSE,
-			LAYOUT_ShrinkWrap,TRUE,
+			//LAYOUT_FixedVert,FALSE,
+			//LAYOUT_FixedHoriz,FALSE,
+			//LAYOUT_ShrinkWrap,TRUE,
 			LAYOUT_AddChild, object[OID_CLICKTAB],
-			LAYOUT_AddChild,HLayoutObject,
+			LAYOUT_AddChild, IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
+         //LAYOUT_Orientation,    LAYOUT_ORIENT_VERT,
 				LAYOUT_EvenSize,   TRUE,
-				LAYOUT_AddChild,gadget[GID_SAVECONF]=ButtonObject,
+				LAYOUT_AddChild,gadget[GID_SAVECONF]=IIntuition->NewObject(ButtonClass, NULL, //"button.gadget",
 					GA_RelVerify,TRUE,
 					GA_Text,msg_save,
 					GA_ID,GID_SAVECONF,
-				ButtonEnd,
-				LAYOUT_AddChild,gadget[GID_PLAY]=ButtonObject,
+				TAG_DONE),
+				LAYOUT_AddChild,gadget[GID_PLAY]=IIntuition->NewObject(ButtonClass, NULL, //"button.gadget",
 					GA_RelVerify,TRUE,
 					GA_Text,msg_launch,
 					GA_ID,GID_PLAY,
-				ButtonEnd,
-				LAYOUT_AddChild,gadget[GID_QUIT]=ButtonObject,
+				TAG_DONE),
+				LAYOUT_AddChild,gadget[GID_QUIT]=IIntuition->NewObject(ButtonClass, NULL, //"button.gadget",
 					GA_RelVerify,TRUE,
 					GA_Text,msg_exit,
 					GA_ID,GID_QUIT,
-				ButtonEnd,
-			LayoutEnd,
-		LayoutEnd,
-	WindowEnd;     
+				TAG_DONE),
+			TAG_DONE),
+			CHILD_WeightedHeight, 0,
+		TAG_DONE),
+	TAG_DONE);
 
 if (!object[OID_MAIN])
 	{
-	IDOS->Printf("Cannot create Window Object\n");
+	IDOS->Printf("Cannot create Window object\n");
 	return -1;
 	}
 
 /*
 **	This requester will warn the user if he wants to play no game, or without emulator ;)
 */
-
-object[OID_REQ] = IIntuition->NewObject(IRequester->REQUESTER_GetClass(),NULL,
-	REQ_Type,	REQTYPE_INFO,
-	REQ_TitleText,	msg_warning,
-	REQ_BodyText,	msg_warningtxt,
-	REQ_Image,REQIMAGE_WARNING,
-	REQ_GadgetText,	msg_ok,
+object[OID_REQ] = IIntuition->NewObject(RequesterClass, NULL, //"requester.class",
+	REQ_Type,       REQTYPE_INFO,
+	REQ_TitleText,  msg_warning,
+	REQ_BodyText,   msg_warningtxt,
+	REQ_Image,      REQIMAGE_WARNING,
+	REQ_GadgetText, msg_ok,
 	TAG_DONE);
 
 if (!object[OID_REQ])
 	{
-	IDOS->Printf("Cannot create Requester Object\n");
+	IDOS->Printf("Cannot create Requester object\n");
 	return -1;
 	}
 
@@ -817,14 +610,17 @@ void destroy_objects()
 	if (object[OID_REQ])		IIntuition->DisposeObject(object[OID_REQ]);
 }
 
+
 void do_events(void)
 {
 	ULONG wait, signal, app = (1L << window[WID_MAIN]->UserPort->mp_SigBit);
 	ULONG done = FALSE,
-			res;
+	      res;
 	ULONG result;
 	UWORD code;
+
 	IIntuition->GetAttr(WINDOW_SigMask, object[OID_MAIN], &signal);
+
 	while (!done)
 		{
 		wait = IExec->Wait( signal | SIGBREAKF_CTRL_C | app );
@@ -832,22 +628,22 @@ void do_events(void)
 			{
 			done = TRUE;
 			}
-	   	else
+		else
 			{
-			while ( (result = RA_HandleInput(object[OID_MAIN], &code) ) != WMHI_LASTMSG )
+			while( (result=IIntuition->IDoMethod(object[OID_MAIN], WM_HANDLEINPUT, &code)) != WMHI_LASTMSG )
 				{
 				switch (result & WMHI_CLASSMASK)
-     					{
-     					case WMHI_CLOSEWINDOW:
+					{
+					case WMHI_CLOSEWINDOW:
 						window[WID_MAIN] = NULL;
 						done = TRUE;
 						break;
 					case WMHI_ICONIFY:
-						res = RA_Iconify(object[OID_MAIN]);
+						res = IIntuition->IDoMethod(object[OID_MAIN], WM_ICONIFY);
 						window[WID_MAIN] = NULL;
 						break;
 					case WMHI_UNICONIFY:
-						window[WID_MAIN] = (struct Window *) RA_OpenWindow(object[OID_MAIN]);
+						window[WID_MAIN] =(struct Window *)IIntuition->IDoMethod(object[OID_MAIN], WM_OPEN, NULL);
 						if (window[WID_MAIN])
 							{
 							IIntuition->GetAttr(WINDOW_SigMask, object[OID_MAIN], &signal);
@@ -878,7 +674,6 @@ void do_events(void)
 									{
  									IIntuition->SetGadgetAttrs((struct Gadget *)(struct Gadget *)gadget[GID_FSKIPSET],window[WID_MAIN],NULL,GA_Disabled,TRUE,TAG_DONE);
 									}
-
 								fskipptr=code;
 								break;
 								case GID_FSKIPSET:
@@ -907,7 +702,6 @@ void do_events(void)
 							case GID_PWINAC:
 								pwiptr=code;
 								break;
-
 							case GID_EXE:
 								IIntuition->IDoMethod((Object *)gadget[GID_EXE],GFILE_REQUEST,window[WID_MAIN]);
 								IIntuition->GetAttrs(gadget[GID_EXE],GETFILE_FullFile, &exefile, TAG_DONE);
@@ -963,7 +757,6 @@ void do_events(void)
 										break;
 									case 1:
 										gdbport=FALSE;
-
 										break;
 									}
 								gdbptr = code;
@@ -999,77 +792,81 @@ void do_events(void)
 
 							case GID_SAVECONF:
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,videoptr,TAG_DONE),"Video Mode");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,videoptr,TAG_DONE),
+								                "Video Mode");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,yuvptr,TAG_DONE),"YUV Mode");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,yuvptr,TAG_DONE),
+								                "YUV Mode");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,filterptr,TAG_DONE),"Filter Mode");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,filterptr,TAG_DONE),
+								                "Filter Mode");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,fskipptr,TAG_DONE),"FrameSkip Mode");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,fskipptr,TAG_DONE),
+								                "FrameSkip Mode");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,fskipvalue,TAG_DONE),"FrameSkip Value");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,fskipvalue,TAG_DONE),
+								                "FrameSkip Value");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,throttleptr,TAG_DONE),"Throttle Mode");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,throttleptr,TAG_DONE),
+								                "Throttle Mode");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,throttlevalue,TAG_DONE),"Throttle Value");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,throttlevalue,TAG_DONE),
+								                "Throttle Value");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,ifbptr,TAG_DONE),"InterFrame Blending");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,ifbptr,TAG_DONE),
+								                "InterFrame Blending");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,pwiptr,TAG_DONE),"Pause When Inactive");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,pwiptr,TAG_DONE),
+								                "Pause When Inactive");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,sesptr,TAG_DONE),"Show Emulation Speed");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,sesptr,TAG_DONE),
+								                "Show Emulation Speed");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,fsizeptr,TAG_DONE),"Flash size");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,fsizeptr,TAG_DONE),
+								                "Flash size");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,savetypeptr,TAG_DONE),"Save Type");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,savetypeptr,TAG_DONE),
+								                "Save Type");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,rtcptr,TAG_DONE),"RTC");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,rtcptr,TAG_DONE),
+								                "RTC");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,mmxptr,TAG_DONE),"MMX");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,mmxptr,TAG_DONE),
+								                "MMX");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,ipsptr,TAG_DONE),"IPS");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,ipsptr,TAG_DONE),
+								                "IPS");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-										IPrefsObjects->PrefsString(NULL, NULL, ALPOSTR_AllocSetString, ipsfile, TAG_DONE),"ips File");
+								                IPrefsObjects->PrefsString(NULL,NULL,ALPOSTR_AllocSetString,ipsfile,TAG_DONE),
+								                "ips File");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-										IPrefsObjects->PrefsString(NULL, NULL, ALPOSTR_AllocSetString, gamefile, TAG_DONE),"Game File");
+								                IPrefsObjects->PrefsString(NULL,NULL,ALPOSTR_AllocSetString,gamefile,TAG_DONE),
+								                "Game File");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-										IPrefsObjects->PrefsString(NULL, NULL, ALPOSTR_AllocSetString, biosfile, TAG_DONE),"Bios File");
+								                IPrefsObjects->PrefsString(NULL,NULL,ALPOSTR_AllocSetString,biosfile,TAG_DONE),
+								                "Bios File");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-										IPrefsObjects->PrefsString(NULL, NULL, ALPOSTR_AllocSetString, exefile, TAG_DONE),"Executable");
-
+								                IPrefsObjects->PrefsString(NULL,NULL,ALPOSTR_AllocSetString,exefile,TAG_DONE),
+								                "Executable");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,port,TAG_DONE),"Port");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,port,TAG_DONE),
+								                "Port");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,agbptr,TAG_DONE),"AGB");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,agbptr,TAG_DONE),
+								                "AGB");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,verboseptr,TAG_DONE),"Verbose");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,verboseptr,TAG_DONE),
+								                "Verbose");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,debugptr,TAG_DONE),"Debug");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,debugptr,TAG_DONE),
+								                "Debug");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
-									IPrefsObjects->PrefsNumber(NULL,NULL, 
-										ALPONUM_AllocSetLong,gdbptr,TAG_DONE),"GDB");
+								                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,gdbptr,TAG_DONE),
+								                "GDB");
 								break;
 							case GID_PLAY:
-								if (strcmp(gamefile,"")&&strcmp(exefile,""))
+								//if (strcmp(gamefile,"")&&strcmp(exefile,""))
+if (gamefile[0]!='\0'  &&  exefile[0]!='\0')
 									parse_commandline();
 								else
 									IIntuition->IDoMethod(object[OID_REQ],RM_OPENREQ,NULL,window[WID_MAIN],NULL,TAG_DONE);
@@ -1083,124 +880,4 @@ void do_events(void)
 			}
 		}
 	}
-}
-/*
-** 	Here we setup a buffer with all the desired options, and launch them via IDOS->Execute()
-**	running it async is not needed here,as the gui won't be needed again until we stop playing.
-**	Also as a second purpose it allows us to iconify the window while playing, and opening it as
-**	soon as we finish the gaming session.
-*/
-
-void parse_commandline(void)  
-{
-	BOOL res;
-	STRPTR vidbuffer,gamebuffer,buffer, fskipbuff, throttlebuff,debugbuffer,gdbbuffer;
-
-	if (fskipptr==1)		fskipbuff = IUtility->ASPrintf("%s%ld ",fskip[fskipptr],fskipvalue);
-	else				fskipbuff = IUtility->ASPrintf("%s ",fskip[fskipptr]);
-
-	if (throttleptr==1)	throttlebuff = IUtility->ASPrintf("%s%ld ",throt[throttleptr],throttlevalue);
-	else				throttlebuff = IUtility->ASPrintf("%s ",throt[throttleptr]);
-	
-	if (gdbptr==1)		gdbbuffer = IUtility->ASPrintf("%s%ld",gdb[gdbptr],port);
-	else				gdbbuffer = IUtility->ASPrintf("%s",gdb[gdbptr]);
-
-	vidbuffer = IUtility->ASPrintf("%s%s%s%s%s%s%s%s",video[videoptr],yuv[yuvptr],filter[filterptr],fskipbuff,throttlebuff,ifb[ifbptr],pwi[pwiptr],sspeed[sesptr]);
-	gamebuffer = IUtility->ASPrintf("%s%s%s%s\"%s\"",fsize[fsizeptr],savetype[savetypeptr],mmxen[mmxptr],rtcen[rtcptr],gamefile);
-	debugbuffer = IUtility->ASPrintf("%s %s %s %s",agbprt[agbptr],verbose[verboseptr],debug[debugptr],gdbbuffer);
-	if (debugptr) 		buffer = IUtility->ASPrintf("%s %s%s %s",exefile,vidbuffer,gamebuffer,debugbuffer);
-	else				buffer = IUtility->ASPrintf("%s %s%s",exefile,vidbuffer,gamebuffer);
-	res = RA_Iconify(object[OID_MAIN]);
-	window[WID_MAIN] = NULL;
-	IDOS->SystemTags(buffer,(BPTR)NULL,(BPTR)NULL);
-	window[WID_MAIN] = RA_OpenWindow(object[OID_MAIN]);
-
-	IExec->FreeVec(buffer);
-	IExec->FreeVec(vidbuffer);
-	IExec->FreeVec(gamebuffer);
-	IExec->FreeVec(throttlebuff);
-	IExec->FreeVec(fskipbuff);
-	IExec->FreeVec(debugbuffer);
-	IExec->FreeVec(gdbbuffer);
-}
-
-/*
-**	Main Routine, rocking already ;)
-**
-*/
-
-int main(void)
-{
-	VBAPort= IExec->AllocSysObjectTags(ASOT_PORT, TAG_DONE);
-	if (!VBAPort)
-		{
-		IDOS->Printf("Cannot Create Message Port.\n");
-		closelibs();
-		return -1;
-		}
-
-	if (openlibs()!=0)
-		{
-		IDOS->Printf("Error Opening Libraries/Interfaces.\n");
-		closelibs();
-		IExec->FreeSysObject(ASOT_PORT,VBAPort);
-		return -1;
-		}
-	appID=IApplication->RegisterApplication(NULL, 
-			REGAPP_URLIdentifier, "Ami603.es",
-			REGAPP_LoadPrefs, TRUE,
-			REGAPP_SavePrefs, TRUE,
-			REGAPP_FileName,"VBAGUI",
-			REGAPP_NoIcon,TRUE,
-			REGAPP_UniqueApplication, TRUE,
-			TAG_DONE);
-	if (!appID)
-		{
-		IDOS->Printf("Error registering the Application.\n");
-		IApplication->UnregisterApplication(appID, NULL);
-		closelibs();
-		IExec->FreeSysObject(ASOT_PORT,VBAPort);
-		return -1;
-		}
-	if (IApplication->GetApplicationAttrs(appID, APPATTR_MainPrefsDict, (ULONG)&VBAPrefs, TAG_DONE))
-		{
-		videoptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Video Mode", 0);
-		yuvptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "YUV Mode", 0);
-		filterptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Filter Mode", 0);
-		fskipptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "FrameSkip Mode", 0);
-		fskipvalue = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "FrameSkip Value", 0);
-		throttleptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Throttle Mode", 0);
-		throttlevalue = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Throttle Value", 5);
-		ifbptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "InterFrame Blending", 0);
-		pwiptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Pause When Inactive", 0);
-		sesptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Show Emulation Speed", 0);
-
-		fsizeptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Flash size", 0);
-		savetypeptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Save Type", 0);
-		rtcptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "RTC", 0);
-		mmxptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "MMX", 0);
-		ipsptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "IPS", 0);
-		exefile =(STRPTR) IPrefsObjects->DictGetStringForKey(VBAPrefs, "Executable", "VisualBoyAdvance");
-		biosfile = (STRPTR)IPrefsObjects->DictGetStringForKey(VBAPrefs, "Bios File", "");
-		ipsfile = (STRPTR)IPrefsObjects->DictGetStringForKey(VBAPrefs, "ips File", "");
-		gamefile =(STRPTR)IPrefsObjects->DictGetStringForKey(VBAPrefs, "Game File", "");
-
-		port = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Port", 55555);
-		agbptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "AGB", 0);
-		verboseptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Verbose",0);
-		debugptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Debug", 0);
-		gdbptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "GDB", 0);
-		}
-	scr = IIntuition->LockPubScreen(NULL);
-	if (create_objects()==0)
-		{
-		window[WID_MAIN] = RA_OpenWindow(object[OID_MAIN]);
-		IIntuition->UnlockScreen(scr);
-		do_events();
-		}
-	destroy_objects();
-	IApplication->UnregisterApplication(appID, NULL);
-	closelibs();
-	IExec->FreeSysObject(ASOT_PORT,VBAPort);
-	return 0;
 }

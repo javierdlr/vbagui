@@ -181,4 +181,6 @@ struct FC_String {
 #define _msg_ok (vbagui_Strings+78)
 #define msg_bigabout (vbagui_Strings[79].msg)
 #define _msg_bigabout (vbagui_Strings+79)
+
+
 #endif
