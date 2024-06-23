@@ -7,33 +7,48 @@ RESOURCES.c
 #include <proto/intuition.h>
 #include <proto/utility.h>
 #include <proto/application.h>
+#include <proto/icon.h>
+#include <proto/graphics.h>
 #include <proto/locale.h>
-//#include <libraries/gadtools.h>
+#include <proto/amigainput.h>
+#include <proto/listbrowser.h>
 
-#include "vbagui_cat.h"
+#include <classes/requester.h>
+
+#define CATCOMP_NUMBERS
+#define CATCOMP_BLOCK
+#define CATCOMP_CODE
+struct LocaleInfo li;
+#include "vbagui_strings.h"
 
 #include "includes.h"
+#include "debug.h"
+
+
+extern struct Window *window[WID_LAST];
+extern Object *object[OID_LAST];
+extern struct List *romlist;
 
 
 /*
 **	Library and interfaces initialization
 */
 struct Library *ApplicationBase = NULL;
-//struct Library *AIN_Base = NULL;
+struct Library *AIN_Base = NULL;
 struct Library *IconBase = NULL;
 //struct Library *DOSBase;
 struct Library *IntuitionBase = NULL;
-//struct Library *GfxBase = NULL;
+struct Library *GfxBase = NULL;
 struct Library *UtilityBase = NULL;
 struct Library *LocaleBase = NULL;
 //extern struct ExecIFace *IExec;
 //extern struct DOSIFace *IDOS;
 struct ApplicationIFace *IApplication = NULL;
 struct PrefsObjectsIFace *IPrefsObjects = NULL;
-//struct AIN_IFace *IAIN = NULL;
+struct AIN_IFace *IAIN = NULL;
 struct IconIFace *IIcon = NULL;
 struct IntuitionIFace *IIntuition = NULL;
-//struct GraphicsIFace *IGraphics = NULL;
+struct GraphicsIFace *IGraphics = NULL;
 struct UtilityIFace *IUtility = NULL;
 struct LocaleIFace *ILocale = NULL;
 struct Library *ClickTabBase = NULL, *ListBrowserBase = NULL, *LayoutBase = NULL,
@@ -49,98 +64,14 @@ Class *ClickTabClass, *ListBrowserClass, *ButtonClass, *LabelClass, *StringClass
       *RequesterClass, *SpaceClass, *IntegerClass, *GetFileClass, *SliderClass,
       *RadioButtonClass;
 // some interfaces needed
-//struct ListBrowserIFace *IListBrowser = NULL;
-//struct ClickTabIFace *IClickTab = NULL;
-//struct LayoutIFace *ILayout = NULL;
-//struct ChooserIFace *IChooser = NULL;
-
-
-struct Catalog *vbaguiCatalog;
-/*
-**	Locale Strings
-*/
-struct FC_String vbagui_Strings[80] = {
-	{ (STRPTR) "About", 0 },
-	{ (STRPTR) "Visual Settings", 1 },
-	{ (STRPTR) "Game Settings", 2 },
-	{ (STRPTR) "Debug Settings", 3 },
-	{ (STRPTR) "Video Mode", 4 },
-	{ (STRPTR) "Full Screen", 5 },
-	{ (STRPTR) "YUV Mode", 6 },
-	{ (STRPTR) "None", 7 },
-	{ (STRPTR) "Filters", 8 },
-	{ (STRPTR) "Normal Mode", 9 },
-	{ (STRPTR) "TV Mode", 10 },
-	{ (STRPTR) "2xSal", 11 },
-	{ (STRPTR) "Super 2xSal", 12 },
-	{ (STRPTR) "Super Eagle", 13 },
-	{ (STRPTR) "Pixelate", 14 },
-	{ (STRPTR) "Motion Blur", 15 },
-	{ (STRPTR) "AdvanceMAME scale 2x", 16 },
-	{ (STRPTR) "Simple 2x", 17 },
-	{ (STRPTR) "Bilinear", 18 },
-	{ (STRPTR) "Bilinear Plus", 19 },
-	{ (STRPTR) "Scanlines", 20 },
-	{ (STRPTR) "High Quality 2x", 21 },
-	{ (STRPTR) "Low Quality 2x", 22 },
-	{ (STRPTR) "FrameSkip", 23 },
-	{ (STRPTR) "Automatic", 24 },
-	{ (STRPTR) "Custom", 25 },
-	{ (STRPTR) "Disabled", 26 },
-	{ (STRPTR) "Enable Throttle", 27 },
-	{ (STRPTR) "InterFrame Blending", 28 },
-	{ (STRPTR) "None", 29 },
-	{ (STRPTR) "Motion Blur", 30 },
-	{ (STRPTR) "Smart", 31 },
-	{ (STRPTR) "Pause When Inactive", 32 },
-	{ (STRPTR) "Don't show emulation speed", 33 },
-	{ (STRPTR) "Show emulation speed", 34 },
-	{ (STRPTR) "Show detailed speed data", 35 },
-	{ (STRPTR) "Program Exe", 36 },
-	{ (STRPTR) "Select the main VBA executable", 37 },
-	{ (STRPTR) "Game File", 38 },
-	{ (STRPTR) "Select a suitable game file", 39 },
-	{ (STRPTR) "BIOS File", 40 },
-	{ (STRPTR) "Select a suitable BIOS file", 41 },
-	{ (STRPTR) "Flash Size", 42 },
-	{ (STRPTR) "64k Flash", 43 },
-	{ (STRPTR) "128k Flash", 44 },
-	{ (STRPTR) "Save Type", 45 },
-	{ (STRPTR) "Automatic", 46 },
-	{ (STRPTR) "EEPROM", 47 },
-	{ (STRPTR) "SRAM", 48 },
-	{ (STRPTR) "FLASH", 49 },
-	{ (STRPTR) "EEPROM + Sensor", 50 },
-	{ (STRPTR) "None", 51 },
-	{ (STRPTR) "IPS Patching", 52 },
-	{ (STRPTR) "Select a suitable IPS patch file", 53 },
-	{ (STRPTR) "Disable MMX", 54 },
-	{ (STRPTR) "Enable RTC", 55 },
-	{ (STRPTR) "Enable Debugging", 56 },
-	{ (STRPTR) "Verbose Output", 57 },
-	{ (STRPTR) "1-SWI", 58 },
-	{ (STRPTR) "2-Unaligned Mem Access", 59 },
-	{ (STRPTR) "4-Illegal Mem Write", 60 },
-	{ (STRPTR) "8-Illegal Mem Read", 61 },
-	{ (STRPTR) "6-DMA 0", 62 },
-	{ (STRPTR) "32-DMA 1", 63 },
-	{ (STRPTR) "64-DMA 2", 64 },
-	{ (STRPTR) "128-DMA 3", 65 },
-	{ (STRPTR) "256-Undefined Instruction", 66 },
-	{ (STRPTR) "512-AGBPrint Messages", 67 },
-	{ (STRPTR) "GDB Protocol", 68 },
-	{ (STRPTR) "Default TCP Port", 69 },
-	{ (STRPTR) "Custom TCP Port", 70 },
-	{ (STRPTR) "PIPE Transport", 71 },
-	{ (STRPTR) "Enable AGBPrint", 72 },
-	{ (STRPTR) "Save", 73 },
-	{ (STRPTR) "Launch", 74 },
-	{ (STRPTR) "Exit", 75 },
-	{ (STRPTR) "Warning!", 76 },
-	{ (STRPTR) "\033cPlease check that you already selected game and\nexecutable path before launching the emulator\n", 77 },
-	{ (STRPTR) "Ok", 78 },
-	{ (STRPTR) "\n\nMain Code: Vicente 'Ami603' Gimeno.\nAbout Logo: Kai 'Restore' Thorsberg.\nNative OS4 VisualBoy Advance porting:\nNicolas 'nicomen' Mendoza and\nupdated by smarkusg.\n\nThis 'Quick'nDirty' GUI wouldn't never seen\nthe light of the day if Tony 'ToAks' Aksnes\ndidn't 'kindly asked me' for it ;)\nGreetings to aGas Group ;)\n", 79 }
-};
+struct ListBrowserIFace *IListBrowser = NULL;
+struct ClickTabIFace *IClickTab = NULL;
+struct LayoutIFace *ILayout = NULL;
+struct ChooserIFace *IChooser = NULL;
+// gamepad stuff
+static CONST_STRPTR kw_array[] = {"Joy0_L", "Joy0_R", "Joy0_B", "Joy0_A", "Joy0_Select", "Joy0_Start", NULL};
+STRPTR cfg_file;
+int32 cfg_value[TOT_CFG]; // settings loaded/saved from/to 'VisualBoyAdvance.cfg'
 
 
 /*
@@ -160,6 +91,9 @@ int openlibs(void)
 	IconBase = IExec->OpenLibrary("icon.library", 52);
 	IIcon = (struct IconIFace *)IExec->GetInterface(IconBase, "main", 1, NULL);
 
+	GfxBase = IExec->OpenLibrary("graphics.library", 52);
+	IGraphics = (struct GraphicsIFace *)IExec->GetInterface(GfxBase, "main", 1, NULL);
+
 	ApplicationBase = IExec->OpenLibrary("application.library", 50);
 	if (ApplicationBase)
 		{
@@ -171,29 +105,21 @@ int openlibs(void)
 		IDOS->Printf("Error obtaining application.library interfaces\n");
 		return -1;
 		}
-	LocaleBase = IExec->OpenLibrary("locale.library",50);
-	if (LocaleBase)
-		{
-		ILocale = (struct LocaleIFace *)IExec->GetInterface(LocaleBase, "main",1,NULL);
-		}
-	if (!ILocale)
-		{
-		IDOS->Printf("Error obtaining locale.library interface\n");
-		return -1;
-		}
 
-	vbaguiCatalog = ILocale->OpenCatalog(NULL, (STRPTR)"vbagui.catalog",
-	                                     OC_BuiltInLanguage, "english",
-	                                     OC_Version,0, TAG_DONE);
-	if (vbaguiCatalog)
-		{
-		struct FC_String *fc;
-		int i;
-		for (i = 0, fc = vbagui_Strings;  i < 80;  i++, fc++)
-			{
-			fc->msg = ILocale->GetCatalogStr(vbaguiCatalog, fc->id,(CONST_STRPTR) fc->msg);
-			}
-		}
+	li.li_Catalog = NULL;
+	if( (LocaleBase=IExec->OpenLibrary("locale.library", 50))
+	   &&  (ILocale=(struct LocaleIFace *)IExec->GetInterface(LocaleBase, "main", 1, NULL)) )
+	{
+		li.li_ILocale = ILocale;
+		li.li_Catalog = ILocale->OpenCatalog(NULL, "vbagui.catalog",
+		                                     OC_BuiltInLanguage, "english",
+		                                     OC_PreferExternal, TRUE,
+		                                    TAG_END);
+	}
+	//else { IDOS->PutErrStr("Failed to use catalog system. Using built-in strings.\n"); }
+
+	AIN_Base = IExec->OpenLibrary("AmigaInput.library", 52);
+	IAIN = (struct AIN_IFace *)IExec->GetInterface(AIN_Base, "main", 1, NULL);
 
 	RequesterBase = IIntuition->OpenClass("requester.class", 52, &RequesterClass);
 	IntegerBase = IIntuition->OpenClass("gadgets/integer.gadget", 52, &IntegerClass);
@@ -204,14 +130,24 @@ int openlibs(void)
 	BitMapBase = IIntuition->OpenClass("images/bitmap.image", 52, &BitMapClass);
 	LabelBase = IIntuition->OpenClass("images/label.image", 52, &LabelClass);
 	GetFileBase = IIntuition->OpenClass("gadgets/getfile.gadget", 52, &GetFileClass);
-	//SliderBase = IIntuition->OpenClass("gadgets/slider.gadget", 52, &SliderClass);
+	SliderBase = IIntuition->OpenClass("gadgets/slider.gadget", 52, &SliderClass);
 	RadioButtonBase = IIntuition->OpenClass("gadgets/radiobutton.gadget", 52, &RadioButtonClass);
 	WindowBase = IIntuition->OpenClass("window.class", 52, &WindowClass);
 
-//	ListBrowserBase = (struct Library *)IIntuition->OpenClass("gadgets/listbrowser.gadget", 52, &ListBrowserClass);
+	ListBrowserBase = (struct Library *)IIntuition->OpenClass("gadgets/listbrowser.gadget", 52, &ListBrowserClass);
 	ClickTabBase = (struct Library *)IIntuition->OpenClass("gadgets/clicktab.gadget", 52, &ClickTabClass);
 	LayoutBase = (struct Library *)IIntuition->OpenClass("gadgets/layout.gadget", 52, &LayoutClass);
 	ChooserBase = (struct Library *)IIntuition->OpenClass("gadgets/chooser.gadget", 52, &ChooserClass);
+
+	if(RequesterBase==NULL  ||  IntegerBase==NULL  ||  SpaceBase==NULL  /*||  StringBase==NULL*/
+	   ||  CheckBoxBase==NULL  ||  ButtonBase==NULL  ||  BitMapBase==NULL  ||  LabelBase==NULL
+	   ||  GetFileBase==NULL  ||  WindowBase==NULL  ||  ListBrowserBase==NULL  ||  ClickTabBase==NULL
+	   ||  SliderBase==NULL  ||  RadioButtonBase==NULL  ||  LayoutBase==NULL  ||  ChooserBase==NULL) { return -1; }
+
+	IListBrowser = (struct ListBrowserIFace *)IExec->GetInterface( (struct Library *)ListBrowserBase, "main", 1, NULL );
+	IClickTab = (struct ClickTabIFace *)IExec->GetInterface( (struct Library *)ClickTabBase, "main", 1, NULL );
+	ILayout = (struct LayoutIFace *)IExec->GetInterface( (struct Library *)LayoutBase, "main", 1, NULL );
+	IChooser = (struct ChooserIFace *)IExec->GetInterface( (struct Library *)ChooserBase, "main", 1, NULL );
 
 	return 0;
 }
@@ -226,32 +162,39 @@ void closelibs(void)
 		//IIntuition->CloseClass(StringBase);
 		IIntuition->CloseClass(LabelBase);
 		IIntuition->CloseClass(GetFileBase);
-		//IIntuition->CloseClass(SliderBase);
+		IIntuition->CloseClass(SliderBase);
 		IIntuition->CloseClass(BitMapBase);
 		IIntuition->CloseClass(ButtonBase);
 		IIntuition->CloseClass(CheckBoxBase);
 		IIntuition->CloseClass(WindowBase);
 
-//		IExec->DropInterface( (struct Interface *)IChooser );
+		IExec->DropInterface( (struct Interface *)IChooser );
 		IIntuition->CloseClass( (struct ClassLibrary *)ChooserBase );
-//		IExec->DropInterface( (struct Interface *)ILayout );
+		IExec->DropInterface( (struct Interface *)ILayout );
 		IIntuition->CloseClass( (struct ClassLibrary *)LayoutBase );
-//		IExec->DropInterface( (struct Interface *)IClickTab );
+		IExec->DropInterface( (struct Interface *)IClickTab );
 		IIntuition->CloseClass( (struct ClassLibrary *)ClickTabBase );
-//		IExec->DropInterface( (struct Interface *)IListBrowser );
-//		IIntuition->CloseClass( (struct ClassLibrary *)ListBrowserBase );
+		IExec->DropInterface( (struct Interface *)IListBrowser );
+		IIntuition->CloseClass( (struct ClassLibrary *)ListBrowserBase );
 	}
 
-	if (vbaguiCatalog)	ILocale->CloseCatalog(vbaguiCatalog);
+	IExec->DropInterface( (struct Interface *)IAIN );
+	IExec->CloseLibrary(AIN_Base);
+
+	if(ILocale)
+	{
+		ILocale->CloseCatalog(li.li_Catalog);
+		IExec->DropInterface( (struct Interface *)ILocale );
+	}
+	IExec->CloseLibrary( (struct Library *)LocaleBase );
 
 	if (IApplication)		IExec->DropInterface((struct Interface *)IApplication);
 	if (IPrefsObjects)		IExec->DropInterface((struct Interface *)IPrefsObjects);
-	if (ILocale)		IExec->DropInterface((struct Interface *)ILocale);
 
 	IExec->DropInterface( (struct Interface *)IIcon );
 	IExec->CloseLibrary(IconBase);
-//	IExec->DropInterface( (struct Interface *)IGraphics );
-//	IExec->CloseLibrary(GfxBase);
+	IExec->DropInterface( (struct Interface *)IGraphics );
+	IExec->CloseLibrary(GfxBase);
 	IExec->DropInterface( (struct Interface *)IIntuition );
 	IExec->CloseLibrary(IntuitionBase);
 
@@ -263,4 +206,161 @@ void closelibs(void)
 
 	if (ApplicationBase)	IExec->CloseLibrary(ApplicationBase);
 	if (LocaleBase)		IExec->CloseLibrary(LocaleBase);
+}
+
+int32 GetRoms(STRPTR romsdir)
+{
+	APTR context;
+	int32 resul = 0;
+	char rom[MAX_DOS_FILENAME];
+	STRPTR pattern_ms = IExec->AllocVecTags(256, TAG_END);
+//	       romfullpath = IExec->AllocVecTags(MAX_FULLFILEPATH, AVT_ClearWithValue,0, TAG_END);
+DBUG("GetRoms() '%s'\n",romsdir);
+
+	// Clear listbrowser list
+	IListBrowser->FreeListBrowserList(romlist);
+
+	IDOS->ParsePatternNoCase("#?.(zip|gb|gba)", pattern_ms, 64);
+	//IUtility->Strlcpy(romfullpath, romsdir, MAX_FULLFILEPATH);
+	//IDOS->AddPart(romfullpath, romsdir, MAX_FULLFILEPATH);
+	context = IDOS->ObtainDirContextTags(EX_StringNameInput, romsdir,//romfullpath,
+	                                     EX_DataFields, (EXF_NAME|EXF_TYPE),
+	                                     EX_MatchString, pattern_ms,
+	                                    TAG_END);
+	if(context)
+	{
+		struct ExamineData *dat;
+		struct Node *n;
+		int32 len, newpos;
+		char ext[4] = ""; // extension + '\0'
+
+		while( (dat=IDOS->ExamineDir(context)) )
+		{
+			if( EXD_IS_FILE(dat) )
+			{
+				len = IUtility->Strlen(dat->Name) - sizeof(ext);
+				newpos = IDOS->SplitName(dat->Name, '.', rom, len, MAX_DOS_FILENAME);
+DBUG("  rom = '%s'\n",dat->Name);
+				// Get name
+				IUtility->Strlcpy(rom, dat->Name, newpos);
+DBUG("    name = '%s'\n",rom);
+				// Get extension
+				ext[0] = IUtility->ToUpper( *(dat->Name + newpos) );
+				ext[1] = IUtility->ToUpper( *(dat->Name + newpos + 1) );
+				ext[2] = IUtility->ToUpper( *(dat->Name + newpos + 2) ); // can be '\0' -> 'GB'
+DBUG("    extension = '%s'\n",ext);
+				n = IListBrowser->AllocListBrowserNode(LAST_COL,
+				                                       LBNA_Column,COL_ROM,
+				                                         LBNCA_CopyText,TRUE, LBNCA_Text,rom,
+				                                       LBNA_Column,COL_FMT,
+				                                         LBNCA_CopyText,TRUE, LBNCA_Text,ext,
+				                                         LBNCA_HorizJustify, LCJ_CENTER,
+				                                      TAG_DONE);
+				IExec->AddTail(romlist, n);
+				resul++;
+DBUG("  %4ld:'%s' [0x%08lx] added\n",resul,dat->Name,n);
+			}
+		}
+
+		if(IDOS->IoErr() != ERROR_NO_MORE_ENTRIES)
+		{
+			IDOS->Fault(IDOS->IoErr(), NULL, rom, MAX_DOS_FILENAME);
+			//DoMessage(rom, REQIMAGE_ERROR, NULL);
+			IIntuition->SetAttrs(object[OID_REQ], REQ_BodyText,rom, TAG_DONE);
+			IIntuition->IDoMethod(object[OID_REQ],RM_OPENREQ,NULL,window[WID_MAIN],NULL,TAG_DONE);
+		}
+	} // END if(context)
+	else
+	{
+		IDOS->Fault(IDOS->IoErr(), NULL, pattern_ms, MAX_DOS_FILENAME); // 'pattern_ms' used as temp-buffer
+		IUtility->SNPrintf(rom, 1024, GetString(&li,MSG_ERROR_ROMDRAWER),pattern_ms);
+		//DoMessage(rom, REQIMAGE_ERROR, NULL);
+		IIntuition->SetAttrs(object[OID_REQ], REQ_BodyText,rom, TAG_DONE);
+		IIntuition->IDoMethod(object[OID_REQ],RM_OPENREQ,NULL,window[WID_MAIN],NULL,TAG_DONE);
+	}
+
+	IDOS->ReleaseDirContext(context);
+	//IExec->FreeVec(romfullpath);
+	IExec->FreeVec(pattern_ms);
+DBUG("GetRoms() = %ld\n",resul);
+	return resul;
+}
+
+BOOL loadConfigToMemory(void)
+{
+	int32 i, res_int;
+	BPTR fhConfFile = IDOS->FOpen(CONFIG_INI, MODE_OLDFILE, 0);
+DBUG("loadConfigToMemory()\n",NULL);
+
+	if(fhConfFile != ZERO) {
+		struct FReadLineData *frld = IDOS->AllocDosObjectTags(DOS_FREADLINEDATA, 0);
+
+		cfg_file = (STRPTR)IExec->AllocVecTags(CFG_FILE_SIZE, AVT_ClearWithValue,0, TAG_END);
+
+		while(IDOS->FReadLine(fhConfFile, frld) > 0) {
+			if(frld->frld_LineLength > 1) {
+//DBUG("Line (%ld bytes): %s", frld->frld_LineLength, frld->frld_Line);
+				i = TOT_CFG;
+				if(frld->frld_Line[0] != '#') { // skip lines starting with such char(s)
+					char kw[32] = "";
+					int32 pos = IDOS->SplitName( frld->frld_Line, '=', kw, 0, sizeof(kw) ); // get KEYWORD without VALUE ("keyUp = 1")
+
+					for(i=0; i!=TOT_CFG; i++) {
+						int32 len = IUtility->Strlen(kw);
+
+						if(kw[len-1] == ' ') { --len; /*kw[len] = '\0';*/ }
+//DBUG("  \"%s\" (%s) %ld\n",kw_array[i],kw,len);
+
+						if( (len==IUtility->Strlen(kw_array[i]))
+						   &&  (IUtility->Strnicmp(kw,kw_array[i],len)==0) ) {
+							if(pos!=-1  &&  IDOS->StrToLong(frld->frld_Line+pos, &res_int)!=-1) {
+DBUG("  keyword:[%ld] \"%s\"\n",i,kw_array[i]);
+								cfg_value[i] = res_int - 1080; // 1080 -> https://www.ngemu.com/threads/baffling-joystick-configuration-problem.28555/
+DBUG("    value: %ld\n",cfg_value[i]);
+							}
+							break; // exit FOR()
+						}
+					}
+				} // END if(frld->frld_Line[0]!='#'..
+
+				if(i == TOT_CFG) { IUtility->Strlcat(cfg_file, frld->frld_Line, CFG_FILE_SIZE); }
+			} // END if(frld->frld_LineLength..
+		} // END while(IDOS->FReadLine(f..
+
+		IDOS->FreeDosObject(DOS_FREADLINEDATA, frld);
+		IDOS->FClose(fhConfFile);
+	} // END if(fhConfFile..
+
+//DBUG("\n'%s'\n",cfg_file);
+	return cfg_file? TRUE : FALSE;
+}
+
+void unloadConfigFromMemory(void)
+{
+DBUG("unloadConfigFromMemory()\n",NULL);
+	IExec->FreeVec(cfg_file);
+	cfg_file = NULL;
+}
+
+void saveToConfig(void)
+{
+	int32 i;
+	BPTR fhConfFile = IDOS->FOpen(CONFIG_INI, MODE_NEWFILE, 0);
+DBUG("saveToConfig() 0x%08lx\n",fhConfFile);
+
+	if(fhConfFile != ZERO) {
+		char buf[1024] = "";
+//DBUG("\n'%s'\n",cfg_file);
+		IDOS->FPuts(fhConfFile, cfg_file); // write not modified 'VisualBoyAdvance.cfg' settings
+
+		// Add keywords and values to 'VisualBoyAdvance.cfg'
+		for(i=0; i!=TOT_CFG; i++) {
+DBUG("  %s",kw_array[i]);
+DBUGN("=%ld\n",cfg_value[i]+1080);
+			IUtility->SNPrintf(buf, sizeof(buf), "%s%s=%ld\n",buf,kw_array[i],cfg_value[i]+1080); // 1080 -> https://www.ngemu.com/threads/baffling-joystick-configuration-problem.28555/
+		}
+		// Write modified settings to 'config.ini'
+		IDOS->FPuts(fhConfFile, buf);
+		IDOS->FClose(fhConfFile);
+	}
 }
