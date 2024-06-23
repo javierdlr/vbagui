@@ -1,0 +1,313 @@
+## version $VER: vbagui.catalog 1.8 (21.06.2024)
+## codeset 4
+## language spanish
+;
+msg_about
+Info.
+;
+msg_visual
+Aspecto
+;
+msg_game
+Opc. Juego
+;
+msg_debug
+Depuración
+;
+msg_videomode
+Modo de video
+;
+msg_fullscreen	
+Pantalla completa
+;
+msg_yuv
+Modo YUV
+;
+msg_yuvnone
+Ninguno
+;
+msg_filter
+Filtro
+;
+msg_filter1
+No
+;
+msg_filter2
+Modo TV
+;
+msg_filter3
+2xSal
+;
+msg_filter4
+Super 2xSal
+;
+msg_filter5
+Super Eagle
+;
+msg_filter6
+Pixelado
+;
+msg_filter7
+Motion Blur
+;
+msg_filter8
+AdvanceMAME escala 2x
+;
+msg_filter9
+Simple 2x
+;
+msg_filter10
+Bilinear
+;
+msg_filter11
+Bilinear Plus
+;
+msg_filter12
+Scanlines
+;
+msg_filter13
+Alta Calidad 2x
+;
+msg_filter14
+Baja Calidad 2x
+;
+msg_fskip	
+Saltar fotogramas
+;
+msg_fskauto
+Automático
+;
+msg_fskcustom
+Personalizado
+;
+msg_fskdisab
+Desactivado
+;
+msg_throttle
+Activar sacudida
+;
+msg_ifb
+\"Blending\" entre fotog.
+;
+msg_ifb1
+Ninguno
+;
+msg_ifb2
+Motion Blur
+;
+msg_ifb3
+Inteligente
+;
+msg_pwi
+Pausar cuando inactivo
+;
+msg_show1
+No mostrar velocidad de emulación
+;
+msg_show2
+Mostrar velocidad de emulación
+;
+msg_show3
+Mostrar datos detallados de velocidad
+;
+msg_exe	
+Emulador VBA
+;Ejecutable del programa
+;
+msg_exeASL
+Seleccionar un ejecutable válido de VBA
+;
+msg_gamefile
+Fichero de juego
+;
+msg_gameASL
+Seleccionar un fichero válido de juego
+;
+msg_biosfile
+Fichero BIOS
+;
+msg_biosASL
+Seleccionar un fichero válido de BIOS
+;
+msg_flash	
+Tamaño de Flash
+;
+msg_flash1
+Flash 64k
+;
+msg_flash2
+Flash 128k
+;
+msg_savetype
+Modo de Grabación
+;
+msg_savetype1
+Automático
+;
+msg_savetype2
+EEPROM
+;
+msg_savetype3
+SRAM
+;
+msg_savetype4
+FLASH
+;
+msg_savetype5
+EEPROM + Sensor
+;
+msg_savetype6
+Ninguno
+;
+msg_ips
+Parcheo IPS
+;
+msg_ipsASL
+Seleccionar un fichero válido de IPS
+;
+msg_mmx
+Desactivar MMX
+;
+msg_rtc
+Activar RTC
+;
+msg_endebug
+Activar depuración
+;
+msg_verbose
+Salida de depuración
+;
+msg_verbose1
+1-SWI
+;
+msg_verbose2
+2-Accesos a memoria no alineados
+;
+msg_verbose3
+4-Escritura a memoria ilegal
+;
+msg_verbose4
+8-Lectura de memoria ilegal
+;
+msg_verbose5
+16-DMA 0
+;
+msg_verbose6
+32-DMA 1
+;
+msg_verbose7
+64-DMA 2
+;
+msg_verbose8
+128-DMA 3
+;
+msg_verbose9
+256-Instrucción no definida
+;
+msg_verbose10
+512-Mensajes AGBPrint
+;
+msg_gdbproto
+Protocolo GDB
+;
+msg_gdbproto1
+Puerto TCP por defecto
+;
+msg_gdbproto2
+Puerto TCP específico
+;
+msg_gdbproto3
+Transporte por 'PIPE:'
+;
+msg_agbprint
+Activar AGBPrint
+;
+msg_save
+Guardar
+;
+msg_launch
+Lanzar
+;
+msg_exit
+Salir
+;
+msg_warning
+¡Atención!
+;
+msg_warningtxt
+\033cComprueba tener seleccionado un\n\
+juego y el ejecutable del emulador.
+;
+msg_ok
+De acuerdo
+;
+msg_bigabout
+\n\nCódigo: Vicente 'Ami603' Gimeno.\n\
+Logotipos: Kai 'Restore' Thorsberg\n\
+y 'McFly'.\n\
+Port AmigaOS4 de VisualBoy Advance:\n\
+Nicolas 'nicomen' Mendoza y actualizado\n\
+por Marek 'smarkusg' Glogowski.\n\
+Traducción: Vicente 'Ami603' Gimeno.\n\n\
+Este GUI 'Rápido y Sucio' no hubiese\n\
+visto la luz del sol si Tony 'ToAks' Aksnes\n\
+no me lo hubiese 'pedido amablemente' ;)\n\
+Saludotes a aGas ;)
+;
+;Added in v1.08
+MSG_GUI_ROMSDRAWER
+ROMS
+; Games Drawer
+;
+MSG_ROMSDRAWER_ASL
+Seleccionar ubicación con ROMs
+; Select a suitable games drawer
+;
+MSG_GUI_GAMESLIST
+Lista De Juegos
+; Games List
+;
+MSG_GUI_TITLE_COL_ROM
+Juego
+; Game
+;
+MSG_GUI_TITLE_COL_FMT
+Formato
+; Format
+;
+MSG_GUI_TOTALROMS
+%ld roms disponibles
+; %ld roms availables
+;
+MSG_GUI_GAMEPAD_BTN
+Ajustes gamepad...
+; Gamepad settings...
+;
+MSG_GUI_GPAD_SAVE
+_Guardar
+; Sa_ve
+;
+MSG_GUI_GPAD_CANCEL
+_Cancelar
+; _Cancel
+;
+MSG_GUI_GPAD_TEXT
+(asignar botones del gamepad)
+; (assign gamepad buttons)
+;
+MSG_APPID_DESCRIPTION
+GUI para el emulador VisualBoy Advance
+; GUI for VisualBoy Advance emulator
+;
+MSG_ABOUT_DONATE
+DONACiÓN PayPal
+; PayPal DONATION
+;
+MSG_ERROR_ROMDRAWER
+\033cFallo al cargar ROMs:\n%s.
+; \033cFailed to load ROM drawer:\n%s.
+;
+MSG_ERROR_URLOPEN
+¡Necesitas tener 'URL:' (launch-handler) montado!
+; You need 'URL:' (launch-handler) mounted!
+;

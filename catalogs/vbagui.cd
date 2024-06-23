@@ -1,332 +1,309 @@
-; $VER: vbagui.cd 1.6 (11.06.2024)
+; $VER: vbagui.cd 1.7 (19.06.2024)
 ;
 msg_about (//)
 About
-; Acerca de...
 ;
 msg_visual (//)
 Visual Settings
-; Opciones Visuales
 ;
 msg_game (//)
 Game Settings
-; Opciones de Juego
 ;
 msg_debug (//)
 Debug Settings
-; Opciones de Depuracion
 ;
 msg_videomode (//)
 Video Mode
-; Modo de video
+;
 ;
 msg_fullscreen (//)
 Full Screen
-; Pantalla Completa
 ;
 msg_yuv (//)
 YUV Mode
-; Modo YUV
 ;
 msg_yuvnone (//)
 None
-; Ninguno
 ;
 msg_filter (//)
-Filters
-; Filtros
+Filter
 ;
 msg_filter1 (//)
-Normal Mode
-; Modo Normal
+No
 ;
 msg_filter2 (//)
 TV Mode
-; Modo TV
 ;
 msg_filter3 (//)
 2xSal
-; 2xSal
 ;
 msg_filter4 (//)
 Super 2xSal
-; Super 2xSal
 ;
 msg_filter5 (//)
 Super Eagle
-; Super Eagle
 ;
 msg_filter6 (//)
 Pixelate
-; Pixelado
 ;
 msg_filter7 (//)
 Motion Blur
-; Motion Blur
 ;
 msg_filter8 (//)
 AdvanceMAME scale 2x
-; AdvanceMAME escala 2x
 ;
 msg_filter9 (//)
 Simple 2x
-; Simple 2x
 ;
 msg_filter10 (//)
 Bilinear
-; Bilinear
 ;
 msg_filter11 (//)
 Bilinear Plus
-; Bilinear Mas
 ;
 msg_filter12 (//)
 Scanlines
-; Lineas de Scan
 ;
 msg_filter13 (//)
 High Quality 2x
-; Alta Calidad 2x
 ;
 msg_filter14 (//)
 Low Quality 2x
-; Baja Calidad 2x
 ;
 msg_fskip (//)
 FrameSkip
-; Saltar Frames
 ;
 msg_fskauto (//)
 Automatic
-; Automatico
 ;
 msg_fskcustom (//)
 Custom
-; Personalizado
 ;
 msg_fskdisab (//)
 Disabled
-; Desactivado
 ;
 msg_throttle (//)
 Enable Throttle
-; Activar Sacudida
 ;
 msg_ifb (//)
 InterFrame Blending
-; Blending entre Frames
 ;
 msg_ifb1 (//)
 None
-; Ninguno
 ;
 msg_ifb2 (//)
 Motion Blur
-; Motion Blur
 ;
 msg_ifb3 (//)
 Smart
-; Inteligente
 ;
 msg_pwi (//)
 Pause When Inactive
-; Pausar cuando Inactivo
 ;
 msg_show1 (//)
 Don't show emulation speed
-; No Mostrar velocidad de emulacion
 ;
 msg_show2 (//)
 Show emulation speed
-; Mostrar velocidad de emulacion
 ;
 msg_show3 (//)
 Show detailed speed data
-; Mostrar datos detallados de velocidad
+;
 ;
 msg_exe (//)
 Program Exe
-; Ejecutable del programa
 ;
 msg_exeASL (//)
 Select the main VBA executable
-; Por favor seleccione un ejecutable valido de VBA
 ;
 msg_gamefile (//)
 Game File
-; Fichero de juego
 ;
 msg_gameASL (//)
 Select a suitable game file
-; Por favor seleccione un fichero valido de juego
 ;
 msg_biosfile (//)
 BIOS File
-; Fichero BIOS
 ;
 msg_biosASL (//)
 Select a suitable BIOS file
-; Por favor seleccione un fichero valido de BIOS
 ;
 msg_flash (//)
 Flash Size
-; Tamaño de Flash
 ;
 msg_flash1 (//)
 64k Flash
-; Flash 64k
 ;
 msg_flash2 (//)
 128k Flash
-; Flash 128k
 ;
 msg_savetype (//)
 Save Type
-; Modo de Grabacion
 ;
 msg_savetype1 (//)
 Automatic
-; Automatico
 ;
 msg_savetype2 (//)
 EEPROM
-; EEPROM
 ;
 msg_savetype3 (//)
 SRAM
-; SRAM
 ;
 msg_savetype4 (//)
 FLASH
-; FLASH
 ;
 msg_savetype5 (//)
 EEPROM + Sensor
-; EEPROM + Sensor
 ;
 msg_savetype6 (//)
 None
-; Ninguno
 ;
 msg_ips (//)
 IPS Patching
-; Activar Parcheo IPS
 ;
 msg_ipsASL (//)
 Select a suitable IPS patch file
-; Por favor seleccione un fichero valido de IPS
 ;
 msg_mmx (//)
 Disable MMX
-; Desactivar MMX
 ;
 msg_rtc (//)
 Enable RTC
-; Activar RTC
+;
 ;
 msg_endebug (//)
 Enable Debugging
-; Activar Depuracion
 ;
 msg_verbose (//)
 Verbose Output
-; Salida de Depuracion
 ;
 msg_verbose1 (//)
 1-SWI
-; 1-SWI
 ;
 msg_verbose2 (//)
 2-Unaligned Mem Access
-; 2-Accesos a memoria no alineados
 ;
 msg_verbose3 (//)
 4-Illegal Mem Write
-; 4-Escritura a memoria ilegal
 ;
 msg_verbose4 (//)
 8-Illegal Mem Read
-; 8-Lectura de memoria ilegal
 ;
 msg_verbose5 (//)
-6-DMA 0
-; 16-DMA 0
+16-DMA 0
 ;
 msg_verbose6 (//)
 32-DMA 1
-; 32-DMA 1
 ;
 msg_verbose7 (//)
 64-DMA 2
-; 64-DMA 2
 ;
 msg_verbose8 (//)
 128-DMA 3
-; 128-DMA 3
 ;
 msg_verbose9 (//)
 256-Undefined Instruction
-; 256-Instruccion no definida
 ;
 msg_verbose10 (//)
 512-AGBPrint Messages
-; 512-Mensajes AGBPrint
 ;
 msg_gdbproto (//)
 GDB Protocol
-; Protocolo GDB
 ;
 msg_gdbproto1 (//)
 Default TCP Port
-; Puerto TCP por defecto
 ;
 msg_gdbproto2 (//)
 Custom TCP Port
-; Puerto TCP especifico
 ;
 msg_gdbproto3 (//)
 PIPE Transport
-; Transporte por PIPE
 ;
 msg_agbprint (//)
 Enable AGBPrint
-; Activar AGBPrint
+;
 ;
 msg_save (//)
 Save
-; Guardar
 ;
 msg_launch (//)
 Launch
-; Lanzar
 ;
 msg_exit (//)
 Exit
-; Salir
+;
 ;
 msg_warning (//)
 Warning!
-;Atencion!
 ;
 msg_warningtxt (//)
-\033cPlease check that you already selected game and\n\
-executable path before launching the emulator.\n
-;Por favor compruebe que ha seleccionado tanto el ejecutable\n\
-;del emulador como el fichero de juego antes de lanzar el emulador\n
+\033cPlease check that you already selected a game and\n\
+executable path before launching the emulator.
 ;
 msg_ok (//)
 Ok
-;De Acuerdo
 ;
+;NOTE: change '(using built..' with translator name
 msg_bigabout (//)
 \n\nMain Code: Vicente 'Ami603' Gimeno.\n\
-About Logo: Kai 'Restore' Thorsberg.\n\
+About Logos: Kai 'Restore' Thorsberg\n\
+and 'McFly'.\n\
 Native OS4 VisualBoy Advance porting:\n\
 Nicolas 'nicomen' Mendoza and\n\
-updated by smarkusg.\n\n\
+updated by Marek 'smarkusg' Glogowski.\n\
+(using built-in strings)\n\n\
 This 'Quick'nDirty' GUI wouldn't never seen\n\
 the light of the day if Tony 'ToAks' Aksnes\n\
 didn't 'kindly asked me' for it ;)\n\
-Greetings to aGas Group ;)\n
-;Version 1.07 AmigaOS4 Nativa\n\nCodigo: Vicente 'Ami603'Gimeno\nLogotipo: Kai 'Restore' Thorsberg,\nPort nativo OS4 de VisualBoy Advance:\nNicolas 'nicomen' Mendoza\n\nEste GUI 'Rapido y sucio' no hubiese\nvisto la luz del sol si Tony 'ToAks' Aksnes\nno me lo hubiese 'pedido amablemente' ;)\nSaludotes a aGas ;)\n
+Greetings to aGas Group ;)
+;
+;Added in v1.08
+MSG_GUI_ROMSDRAWER (//)
+Games Drawer
+;
+MSG_ROMSDRAWER_ASL (//)
+Select a suitable games drawer
+;
+MSG_GUI_GAMESLIST (//)
+Games List
+;
+MSG_GUI_TITLE_COL_ROM (//)
+Game
+;
+MSG_GUI_TITLE_COL_FMT (//)
+Format
+;
+MSG_GUI_TOTALROMS (//)
+%ld roms availables
+;
+;MSG_GUI_FSKIP_AUTO (//5)
+;auto
+;
+;MSG_GUI_FSKIP_OFF (//5)
+;off
+;
+MSG_GUI_GAMEPAD_BTN (//)
+Gamepad settings...
+;
+MSG_GUI_GPAD_SAVE (//)
+Sa_ve
+;
+MSG_GUI_GPAD_CANCEL (//)
+_Cancel
+;
+MSG_GUI_GPAD_TEXT (//)
+(assign gamepad buttons)
+;
+MSG_APPID_DESCRIPTION (//)
+GUI for VisualBoy Advance emulator
+;
+MSG_ABOUT_DONATE (//)
+PayPal DONATION 'Ami603'
+;
+MSG_ERROR_ROMDRAWER (//250)
+\033cFailed to load ROM drawer:\n%s.
+; IOERR_STRING
+;
+MSG_ERROR_URLOPEN (//)
+You need 'URL:' (launch-handler) mounted!
 ;

@@ -1,0 +1,339 @@
+## version $VER: vbagui.ct 1.08 (13.06.2024)
+## codeset x
+## language x
+## chunk AUTH Translated by
+;
+msg_about
+
+; About
+;
+msg_visual
+
+; Visual Settings
+;
+msg_game
+
+; Game Settings
+;
+msg_debug
+
+; Debug Settings
+;
+msg_videomode
+
+; Video Mode
+;
+msg_fullscreen
+
+; Full Screen
+;
+msg_yuv
+
+; YUV Mode
+;
+msg_yuvnone
+
+; None
+;
+msg_filter
+
+; Filters
+;
+msg_filter1
+
+; Normal Mode
+;
+msg_filter2
+
+; TV Mode
+;
+msg_filter3
+
+; 2xSal
+;
+msg_filter4
+
+; Super 2xSal
+;
+msg_filter5
+
+; Super Eagle
+;
+msg_filter6
+
+; Pixelate
+;
+msg_filter7
+
+; Motion Blur
+;
+msg_filter8
+
+; AdvanceMAME scale 2x
+;
+msg_filter9
+
+; Simple 2x
+;
+msg_filter10
+
+; Bilinear
+;
+msg_filter11
+
+; Bilinear Plus
+;
+msg_filter12
+
+; Scanlines
+;
+msg_filter13
+
+; High Quality 2x
+;
+msg_filter14
+
+; Low Quality 2x
+;
+msg_fskip
+
+; FrameSkip
+;
+msg_fskauto
+
+; Automatic
+;
+msg_fskcustom
+
+; Custom
+;
+msg_fskdisab
+
+; Disabled
+;
+msg_throttle
+
+; Enable Throttle
+;
+msg_ifb
+
+; InterFrame Blending
+;
+msg_ifb1
+
+; None
+;
+msg_ifb2
+
+; Motion Blur
+;
+msg_ifb3
+
+; Smart
+;
+msg_pwi
+
+; Pause When Inactive
+;
+msg_show1
+
+; Don't show emulation speed
+;
+msg_show2
+
+; Show emulation speed
+;
+msg_show3
+
+; Show detailed speed data
+;
+msg_exe
+
+; Program Exe
+;
+msg_exeASL
+
+; Select the main VBA executable
+;
+msg_gamefile
+
+; Game File
+;
+msg_gameASL
+
+; Select a suitable game file
+;
+msg_biosfile
+
+; BIOS File
+;
+msg_biosASL
+
+; Select a suitable BIOS file
+;
+msg_flash
+
+; Flash Size
+;
+msg_flash1
+
+; 64k Flash
+;
+msg_flash2
+
+; 128k Flash
+;
+msg_savetype
+
+; Save Type
+;
+msg_savetype1
+
+; Automatic
+;
+msg_savetype2
+
+; EEPROM
+;
+msg_savetype3
+
+; SRAM
+;
+msg_savetype4
+
+; FLASH
+;
+msg_savetype5
+
+; EEPROM + Sensor
+;
+msg_savetype6
+
+; None
+;
+msg_ips
+
+; IPS Patching
+;
+msg_ipsASL
+
+; Select a suitable IPS patch file
+;
+msg_mmx
+
+; Disable MMX
+;
+msg_rtc
+
+; Enable RTC
+;
+msg_endebug
+
+; Enable Debugging
+;
+msg_verbose
+
+; Verbose Output
+;
+msg_verbose1
+
+; 1-SWI
+;
+msg_verbose2
+
+; 2-Unaligned Mem Access
+;
+msg_verbose3
+
+; 4-Illegal Mem Write
+;
+msg_verbose4
+
+; 8-Illegal Mem Read
+;
+msg_verbose5
+
+; 16-DMA 0
+;
+msg_verbose6
+
+; 32-DMA 1
+;
+msg_verbose7
+
+; 64-DMA 2
+;
+msg_verbose8
+
+; 128-DMA 3
+;
+msg_verbose9
+
+; 256-Undefined Instruction
+;
+msg_verbose10
+
+; 512-AGBPrint Messages
+;
+msg_gdbproto
+
+; GDB Protocol
+;
+msg_gdbproto1
+
+; Default TCP Port
+;
+msg_gdbproto2
+
+; Custom TCP Port
+;
+msg_gdbproto3
+
+; PIPE Transport
+;
+msg_agbprint
+
+; Enable AGBPrint
+;
+msg_save
+
+; Save
+;
+msg_launch
+
+; Launch
+;
+msg_exit
+
+; Exit
+;
+msg_warning
+
+; Warning!
+;
+msg_warningtxt
+
+; \033cPlease check that you already selected game and\n\
+; executable path before launching the emulator.\n
+;
+;
+msg_ok
+
+; Ok
+;
+; NOTE: change '(using built..' with translator name)
+;
+msg_bigabout
+
+; \n\nMain Code: Vicente 'Ami603' Gimeno.\n\
+; About Logos: Kai 'Restore' Thorsberg\n\
+; and 'McFly'.\n\
+; Native OS4 VisualBoy Advance porting:\n\
+; Nicolas 'nicomen' Mendoza and\n\
+; updated by Marek 'smarkusg' Glogowski.\n\
+; (using built-in strings)\n\n\
+; This 'Quick'nDirty' GUI wouldn't never seen\n\
+; the light of the day if Tony 'ToAks' Aksnes\n\
+; didn't 'kindly asked me' for it ;)\n\
+; Greetings to aGas Group ;)
+;

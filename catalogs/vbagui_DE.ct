@@ -1,0 +1,394 @@
+## version $VER: vbagui.catalog 1.8 (21.06.2024)
+## codeset 0
+## language german
+; $VER: vbagui.cd 1.08 (19.06.2024)
+;
+msg_about
+über
+; About
+;
+msg_visual
+visuelle Einstellungen
+; Visual Settings
+;
+msg_game
+Spieleinstellungen
+; Game Settings
+;
+msg_debug
+Debug-Einstellungen
+; Debug Settings
+;
+msg_videomode
+Video-Modus
+; Video Mode
+;
+msg_fullscreen
+Vollbild
+; Full Screen
+;
+msg_yuv
+YUV Modus
+; YUV Mode
+;
+msg_yuvnone
+keine
+; None
+;
+msg_filter
+Filter
+; Filter
+;
+msg_filter1
+Nein
+; No
+;
+msg_filter2
+TV Modus
+; TV Mode
+;
+msg_filter3
+2xSal
+; 2xSal
+;
+msg_filter4
+Super 2xSal
+; Super 2xSal
+;
+msg_filter5
+Super Eagle
+; Super Eagle
+;
+msg_filter6
+Pixelate
+; Pixelate
+;
+msg_filter7
+Motion Blur
+; Motion Blur
+;
+msg_filter8
+AdvanceMAME scale 2x
+; AdvanceMAME scale 2x
+;
+msg_filter9
+Simple 2x
+; Simple 2x
+;
+msg_filter10
+Bilinear
+; Bilinear
+;
+msg_filter11
+Bilinear Plus
+; Bilinear Plus
+;
+msg_filter12
+Scanlines
+; Scanlines
+;
+msg_filter13
+High Quality 2x
+; High Quality 2x
+;
+msg_filter14
+Low Quality 2x
+; Low Quality 2x
+;
+msg_fskip
+Bilder überspringen
+; FrameSkip
+;
+msg_fskauto
+automatisch
+; Automatic
+;
+msg_fskcustom
+Benutzerdefiniert
+; Custom
+;
+msg_fskdisab
+deaktiviert
+; Disabled
+;
+msg_throttle
+Drosselung ein
+; Enable Throttle
+;
+msg_ifb
+InterFrame Blending
+; InterFrame Blending
+;
+msg_ifb1
+keine
+; None
+;
+msg_ifb2
+Motion Blur
+; Motion Blur
+;
+msg_ifb3
+Smart
+; Smart
+;
+msg_pwi
+Pause bei Inaktivität
+; Pause When Inactive
+;
+msg_show1
+Emulationsgeschwindigkeit nicht anzeigen
+; Don't show emulation speed
+;
+msg_show2
+Emulationsgeschwindigkeit anzeigen
+; Show emulation speed
+;
+msg_show3
+Detaillierte Geschwindigkeitsdaten anzeigen
+; Show detailed speed data
+;
+msg_exe
+Program Exe
+; Program Exe
+;
+msg_exeASL
+wähle ausführbare VBA-Datei
+; Select the main VBA executable
+;
+msg_gamefile
+Spiel Datei
+; Game File
+;
+msg_gameASL
+wähle eine passende Spieldatei
+; Select a suitable game file
+;
+msg_biosfile
+BIOS Datei
+; BIOS File
+;
+msg_biosASL
+wähle eine passende BIOS-Datei
+; Select a suitable BIOS file
+;
+msg_flash
+Flash Größe
+; Flash Size
+;
+msg_flash1
+64k Flash
+; 64k Flash
+;
+msg_flash2
+128k Flash
+; 128k Flash
+;
+msg_savetype
+Typ speichern
+; Save Type
+;
+msg_savetype1
+automatisch
+; Automatic
+;
+msg_savetype2
+EEPROM
+; EEPROM
+;
+msg_savetype3
+SRAM
+; SRAM
+;
+msg_savetype4
+FLASH
+; FLASH
+;
+msg_savetype5
+EEPROM + Sensor
+; EEPROM + Sensor
+;
+msg_savetype6
+keine
+; None
+;
+msg_ips
+IPS-Patching aktivieren
+; IPS Patching
+;
+msg_ipsASL
+wähle eine geeignete IPS-Patch-Datei
+; Select a suitable IPS patch file
+;
+msg_mmx
+MMX deaktivieren
+; Disable MMX
+;
+msg_rtc
+RTC einschalten
+; Enable RTC
+;
+msg_endebug
+Debugging einschalten
+; Enable Debugging
+;
+msg_verbose
+Ausführliche Ausgabe
+; Verbose Output
+;
+msg_verbose1
+1-SWI
+; 1-SWI
+;
+msg_verbose2
+2-Unaligned Mem Zugriff
+; 2-Unaligned Mem Access
+;
+msg_verbose3
+4-Illegal Mem Write
+; 4-Illegal Mem Write
+;
+msg_verbose4
+8-Illegal Mem Read
+; 8-Illegal Mem Read
+;
+msg_verbose5
+16-DMA 0
+; 16-DMA 0
+;
+msg_verbose6
+32-DMA 1
+; 32-DMA 1
+;
+msg_verbose7
+64-DMA 2
+; 64-DMA 2
+;
+msg_verbose8
+128-DMA 3
+; 128-DMA 3
+;
+msg_verbose9
+256-Undefined Instruction
+; 256-Undefined Instruction
+;
+msg_verbose10
+512-AGBPrint Messages
+; 512-AGBPrint Messages
+;
+msg_gdbproto
+GDB Protokoll
+; GDB Protocol
+;
+msg_gdbproto1
+Standard-TCP-Anschluss
+; Default TCP Port
+;
+msg_gdbproto2
+Benutzerdefinierter TCP-Anschluss
+; Custom TCP Port
+;
+msg_gdbproto3
+PIPE Transport
+; PIPE Transport
+;
+msg_agbprint
+Aktivieren von AGBPrint
+; Enable AGBPrint
+;
+msg_save
+Speichern
+; Save
+;
+msg_launch
+Start
+; Launch
+;
+msg_exit
+Beenden
+; Exit
+;
+msg_warning
+Warnung!
+; Warning!
+;
+msg_warningtxt
+\033cVergewissern Sie sich, dass Sie vor dem Start\ndes Emulators bereits den Pfad zum Spiel\nund zur ausführbaren Datei ausgewählt haben.\n
+; \033cPlease check that you already selected a game and\nexecutable path before launching the emulator.
+;
+msg_ok
+Ok
+; Ok
+;
+; NOTE: change '(using built..' with translator name
+;
+msg_bigabout
+\n\nHauptcode: Vicente 'Ami603' Gimeno.\n\nÜber Logos: Kai 'Restore' Thorsberg\nund 'McFly'.\nNative OS4 VisualBoy Advance-Portierung:\nNicolas 'nicomen' Mendoza und\naktualisiert von Marek 'smarkusg' \
+Glogowski.\n(unter Verwendung eingebauter Strings)\n\nDiese 'Quick'nDirty'-GUI hätte nie das Licht der\nWelt erblickt wenn Tony 'ToAks' Aksnes mich\nnicht 'freundlicherweise' darum gebeten hätte ;)\n\
+\Grüße an die aGas Group ;)
+; \n\nMain Code: Vicente 'Ami603' Gimeno.\nAbout Logos: Kai 'Restore' Thorsberg\nand 'McFly'.\nNative OS4 VisualBoy Advance porting:\nNicolas 'nicomen' Mendoza and\nupdated by Marek 'smarkusg' Glogowski.\n(using built-in strings)\n\nThis 'Quick'nDirty' GUI wouldn't never seen\nthe light of the day if Tony 'ToAks' Aksnes\ndidn't 'kindly asked me' for it ;)\nGreetings to aGas Group ;)
+;
+; Added in v1.08
+;
+MSG_GUI_ROMSDRAWER
+Spieleverzeichnis
+; Games Drawer
+;
+MSG_ROMSDRAWER_ASL
+Wähle ein geeignetes Spieleverzeichnis
+; Select a suitable games drawer
+;
+MSG_GUI_GAMESLIST
+Spiele Liste
+; Games List
+;
+MSG_GUI_TITLE_COL_ROM
+Spiel
+; Game
+;
+MSG_GUI_TITLE_COL_FMT
+Format
+; Format
+;
+MSG_GUI_TOTALROMS
+%ld verfügbare Roms
+; %ld roms availables
+;
+; MSG_GUI_FSKIP_AUTO (//5)
+; auto
+;
+; MSG_GUI_FSKIP_OFF (//5)
+; off
+;
+MSG_GUI_GAMEPAD_BTN
+Gamepad-Einstellungen...
+; Gamepad settings...
+;
+MSG_GUI_GPAD_SAVE
+S_peichern
+; Sa_ve
+;
+MSG_GUI_GPAD_CANCEL
+_Abbruch
+; _Cancel
+;
+MSG_GUI_GPAD_TEXT
+(Gamepad-Tasten zuweisen)
+; (assign gamepad buttons)
+;
+MSG_APPID_DESCRIPTION
+GUI für VisualBoy Advance-Emulator
+; GUI for VisualBoy Advance emulator
+;
+MSG_ABOUT_DONATE
+PayPal-SPENDE
+; PayPal DONATION
+;
+MSG_ERROR_ROMDRAWER
+\033cFehler beim Laden des ROM-Ordner:\n%s.
+; \033cFailed to load ROM drawer:\n%s.
+; IOERR_STRING
+;
+MSG_ERROR_URLOPEN
+openURL wird benötigt (launch-handler)
+; You need 'URL:' (launch-handler) mounted!
+;

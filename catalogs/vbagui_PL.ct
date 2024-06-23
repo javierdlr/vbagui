@@ -1,0 +1,351 @@
+## version $VER: vbagui.ct 1.08 (15.06.2024)
+## codeset 5
+## language polish
+## chunk AUTH Translated by smarkusg
+;
+msg_about
+O Programie
+; About
+;
+msg_visual
+Ustawienia Wizualne
+; Visual Settings
+;
+msg_game
+Ustawienia Gry
+; Game Settings
+;
+msg_debug
+Ustawienia Debagowania
+; Debug Settings
+;
+msg_videomode
+Tryb Wideo
+; Video Mode
+;
+msg_fullscreen
+Pa³ny Ekran
+; Full Screen
+;
+msg_yuv
+Tryb YUV
+; YUV Mode
+;
+msg_yuvnone
+Brak
+; None
+;
+msg_filter
+Filtry
+; Filters
+;
+msg_filter1
+Tryb Normalny
+; Normal Mode
+;
+msg_filter2
+TV Mode
+; TV Mode
+;
+msg_filter3
+2xSal
+; 2xSal
+;
+msg_filter4
+Super 2xSal
+; Super 2xSal
+;
+msg_filter5
+Super Eagle
+; Super Eagle
+;
+msg_filter6
+Pixelate
+; Pixelate
+;
+msg_filter7
+Motion Blur
+; Motion Blur
+;
+msg_filter8
+AdvanceMAME scale 2x
+; AdvanceMAME scale 2x
+;
+msg_filter9
+Simple 2x
+; Simple 2x
+;
+msg_filter10
+Bilinear
+; Bilinear
+;
+msg_filter11
+Bilinear Plus
+; Bilinear Plus
+;
+msg_filter12
+Scanlines
+; Scanlines
+;
+msg_filter13
+High Quality 2x
+; High Quality 2x
+;
+msg_filter14
+Low Quality 2x
+; Low Quality 2x
+;
+msg_fskip
+Pominiêcie Klatek
+; FrameSkip
+;
+msg_fskauto
+Automatycznie
+; Automatic
+;
+msg_fskcustom
+Niestandardowe
+; Custom
+;
+msg_fskdisab
+Wy³±czony
+; Disabled
+;
+msg_throttle
+Tryb Throttle
+; Enable Throttle
+;
+msg_ifb
+InterFrame Blending
+; InterFrame Blending
+;
+msg_ifb1
+Brak
+; None
+;
+msg_ifb2
+Motion Blur
+; Motion Blur
+;
+msg_ifb3
+Smart
+; Smart
+;
+msg_pwi
+Wstrzymaj Je¿eli Nieaktywny
+; Pause When Inactive
+;
+msg_show1
+Nie pokazuj prêdko¶ci emulacji
+; Don't show emulation speed
+;
+msg_show2
+Poka¿ prêdko¶æ emulacji
+; Show emulation speed
+;
+msg_show3
+Poka¿ szczegó³owe dane prêdko¶ci
+; Show detailed speed data
+;
+msg_exe
+Program Wykonywalny
+; Program Exe
+;
+msg_exeASL
+Wybierz plik wykonwalny VGA
+; Select the main VBA executable
+;
+msg_gamefile
+Plik z Gr±
+; Game File
+;
+msg_gameASL
+Wybierz odpoiwiedni plik z gr±
+; Select a suitable game file
+;
+msg_biosfile
+Plik BIOS
+; BIOS File
+;
+msg_biosASL
+Wybierz odpoiwiedni plik BIOS
+; Select a suitable BIOS file
+;
+msg_flash
+Flash Size
+; Flash Size
+;
+msg_flash1
+64k Flash
+; 64k Flash
+;
+msg_flash2
+128k Flash
+; 128k Flash
+;
+msg_savetype
+Tryb Zapisu
+; Save Type
+;
+msg_savetype1
+Automatyczny
+; Automatic
+;
+msg_savetype2
+EEPROM
+; EEPROM
+;
+msg_savetype3
+SRAM
+; SRAM
+;
+msg_savetype4
+FLASH
+; FLASH
+;
+msg_savetype5
+EEPROM + Sensor
+; EEPROM + Sensor
+;
+msg_savetype6
+Brak
+; None
+;
+msg_ips
+Paczowanie IPS
+; IPS Patching
+;
+msg_ipsASL
+Wybierz odpowienik plik paczu IPS
+; Select a suitable IPS patch file
+;
+msg_mmx
+Disable MMX
+; Disable MMX
+;
+msg_rtc
+W³±cz RTC
+; Enable RTC
+;
+msg_endebug
+W³±cz Debagowanie
+; Enable Debugging
+;
+msg_verbose
+Wyj¶cie Dok³adniejszych Informacji
+; Verbose Output
+;
+msg_verbose1
+1-SWI
+; 1-SWI
+;
+msg_verbose2
+2-Unaligned Mem Access
+; 2-Unaligned Mem Access
+;
+msg_verbose3
+4-Illegal Mem Write
+; 4-Illegal Mem Write
+;
+msg_verbose4
+8-Illegal Mem Read
+; 8-Illegal Mem Read
+;
+msg_verbose5
+16-DMA 0
+; 16-DMA 0
+;
+msg_verbose6
+32-DMA 1
+; 32-DMA 1
+;
+msg_verbose7
+64-DMA 2
+; 64-DMA 2
+;
+msg_verbose8
+128-DMA 3
+; 128-DMA 3
+;
+msg_verbose9
+256-Undefined Instruction
+; 256-Undefined Instruction
+;
+msg_verbose10
+512-AGBPrint Messages
+; 512-AGBPrint Messages
+;
+msg_gdbproto
+Protokó³ GDB
+; GDB Protocol
+;
+msg_gdbproto1
+Domy¶lny port TCP
+; Default TCP Port
+;
+msg_gdbproto2
+Niestandardowy port TCP
+; Custom TCP Port
+;
+msg_gdbproto3
+PIPE Transport
+; PIPE Transport
+;
+msg_agbprint
+W³±cz AGBPrint
+; Enable AGBPrint
+;
+msg_save
+Zapisz
+; Save
+;
+msg_launch
+Uruchom
+; Launch
+;
+msg_exit
+Wyj¶cie
+; Exit
+;
+msg_warning
+Ostrze¿enie!
+; Warning!
+;
+msg_warningtxt
+\033cSprawd¼, czy wybra³e¶ grê oraz\n\
+ ¶cie¿kê pliku wykonywalnego przed uruchomieniem emulatora.\n
+; \033cPlease check that you already selected game and\n\
+; executable path before launching the emulator.\n
+;
+;
+msg_ok
+Ok
+; Ok
+;
+; NOTE: change '(using built..' with translator name)
+;
+msg_bigabout
+\n\nKod G³ówny: Vicente 'Ami603' Gimeno.\n\
+Logo About: Kai 'Restore' Thorsberg\n\
+and 'McFly'.\n\
+Nicolas 'nicomen' Mendoza and\n\
+Port VisualBoy Advance na OS4:\n\
+Nicolas 'nicomen' Mendoza and\n\
+Aktualizacja: Javier de las Rivas \n\
+Polskie t³umaczenie: smarkusg n\n\
+Ten 'Quick'nDirty' GUI nigdy nie ujrza³ by\n\
+¶wiat³a  dziennego, gdyby Tony 'ToAks' Aksnes\n\
+"uprzejmie mnie o to poprosi³" ;)\n\
+Pozdrowienia dla aGas Group ;)
+; \n\nMain Code: Vicente 'Ami603' Gimeno.\n\
+; About Logos: Kai 'Restore' Thorsberg\n\
+; and 'McFly'.\n\
+; Native OS4 VisualBoy Advance porting:\n\
+; Nicolas 'nicomen' Mendoza and\n\
+; updated by Marek 'smarkusg' Glogowski.\n\
+; (using built-in strings)\n\n\
+; This 'Quick'nDirty' GUI wouldn't never seen\n\
+; the light of the day if Tony 'ToAks' Aksnes\n\
+; didn't 'kindly asked me' for it ;)\n\
+; Greetings to aGas Group ;)
+;
