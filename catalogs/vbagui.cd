@@ -1,4 +1,4 @@
-; $VER: vbagui.cd 1.7 (19.06.2024)
+; $VER: vbagui.cd 1.7 (25.06.2024)
 ;
 msg_about (//)
 About
@@ -281,6 +281,9 @@ MSG_GUI_TOTALROMS (//)
 ;
 ;MSG_GUI_FSKIP_OFF (//5)
 ;off
+;
+MSG_GUI_MUTEAUDIO (//)
+Mute audio
 ;
 MSG_GUI_GAMEPAD_BTN (//)
 Gamepad settings...
