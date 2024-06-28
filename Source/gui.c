@@ -82,7 +82,7 @@ extern int videoptr,yuvptr,filterptr;
 extern int fskipptr,fskipvalue;
 extern int throttleptr,throttlevalue;
 extern int ifbptr,fsizeptr,pwiptr;
-extern int rtcptr,mmxptr,ipsptr;
+extern int rtcptr,mmxptr,ipsptr,muteptr;
 extern int sesptr,savetypeptr;
 
 extern int port,agbptr,verboseptr,debugptr,gdbptr;
@@ -184,9 +184,6 @@ DBUG("updateList()\n",NULL);
 	IIntuition->SetAttrs(gadget[GID_LISTBROWSER], LISTBROWSER_Labels,NULL, TAG_END);
 
 	// Re-generate romlist with new rom drawer
-//	IIntuition->GetAttr(GETFILE_Drawer, gadget[GID_GAME], (uint32*)&romdrawer);
-//	FreeString(&gui->myTT.romsdrawer);
-//	gui->myTT.romsdrawer = DupStr(romdrawer, -1);
 	res_tot = GetRoms( (STRPTR)gamefile );
 	/*if(res_tot == 0) { // "clear" savestates chooser list
 		struct Node *node = IChooser->AllocChooserNode(CNA_Text,GetString(&li,MSG_GUI_SAVESTATES_NO), TAG_DONE);
@@ -204,8 +201,6 @@ DBUG("updateList()\n",NULL);
 	// Re-attach the listbrowser
 	IIntuition->SetAttrs(gadget[GID_LISTBROWSER], LISTBROWSER_SortColumn,COL_ROM,
 	                     LISTBROWSER_Labels,romlist, TAG_DONE);
-	//IIntuition->RefreshSetGadgetAttrs((struct Gadget *)gadget[GID_TOTALROMS], window[WID_MAIN], NULL,
-	//                                  BUTTON_VarArgs,&res_tot, TAG_DONE);
 	IIntuition->SetAttrs(gadget[GID_TOTALROMS], BUTTON_VarArgs,&res_tot, TAG_DONE);
 	ILayout->RefreshPageGadget((struct Gadget *)gadget[GID_GAMELIST], object[OID_PAGE3], window[WID_MAIN], NULL);
 }
@@ -215,7 +210,6 @@ uint32 selectListEntry(struct Window *pw, uint32 res_val)
 	IIntuition->SetAttrs(gadget[GID_LISTBROWSER],
 	                     LISTBROWSER_Selected,res_val,
 	                     LISTBROWSER_MakeVisible,res_val, TAG_DONE);
-	//IIntuition->RefreshGadgets((struct Gadget *)gadget[GID_LISTBROWSER], pw, NULL);
 	ILayout->RefreshPageGadget((struct Gadget *)gadget[GID_LISTBROWSER], object[OID_PAGE3], pw, NULL);
 
 	return res_val;
@@ -227,7 +221,6 @@ uint32 selectListEntryNode(struct Window *pw, struct Node *n)
 	IIntuition->SetAttrs(gadget[GID_LISTBROWSER],
                       LISTBROWSER_SelectedNode,n,
                       LISTBROWSER_MakeNodeVisible,n, TAG_DONE);
-	//IIntuition->RefreshGadgets(GAD(OID_LISTBROWSER), pw, NULL);
 	ILayout->RefreshPageGadget((struct Gadget *)gadget[GID_LISTBROWSER], object[OID_PAGE3], pw, NULL);
 	IIntuition->GetAttrs(gadget[GID_LISTBROWSER], LISTBROWSER_Selected,&res_val, TAG_DONE);
 
@@ -562,6 +555,8 @@ int create_objects(void)
 				GA_RelVerify,       TRUE,
 				GETFILE_ReadOnly, TRUE,
 				GETFILE_FullFile, exefile,
+				//GETFILE_File, exefile,
+				GETFILE_FullFileExpand, FALSE,
 				GETFILE_TitleText, GetString(&li, msg_exeASL),
 			TAG_DONE),
 			CHILD_Label, IIntuition->NewObject(LabelClass, NULL, //"label.image",
@@ -659,6 +654,16 @@ int create_objects(void)
 				TAG_DONE),
 			TAG_DONE),
 			CHILD_WeightedHeight, 0,
+
+			LAYOUT_AddChild, gadget[GID_MUTE] = IIntuition->NewObject(CheckBoxClass, NULL, //"checkbox.gadget",
+				GA_ID,        GID_MUTE,
+				GA_RelVerify, TRUE,
+				GA_Text,      GetString(&li, MSG_GUI_MUTEAUDIO),//"Mute audio",
+				GA_Selected,  (BOOL *)muteptr,
+				//CHECKBOX_TextPlace, PLACETEXT_LEFT,
+			TAG_DONE),
+			//CHILD_WeightedWidth, 0,
+
 
 			LAYOUT_AddChild, gadget[GID_GAMELIST] = IIntuition->NewObject(LayoutClass, NULL, //"layout.gadget",
 				LAYOUT_Orientation,    LAYOUT_ORIENT_VERT,
@@ -1087,14 +1092,15 @@ DBUG("  sel=%ld  nodes=%ld\n",res,res_totnode);
 								fskipvalue=code;
 								break;
 							case GID_THROTTLE:
-								if (code)
+								/*if (code)
 									{
 									IIntuition->SetGadgetAttrs((struct Gadget *)gadget[GID_THROTTLESET],window[WID_MAIN],NULL,GA_Disabled,FALSE,TAG_DONE);
 									}
 								else
 									{
 									IIntuition->SetGadgetAttrs((struct Gadget *)gadget[GID_THROTTLESET],window[WID_MAIN],NULL,GA_Disabled,TRUE,TAG_DONE);
-									}
+									}*/
+								IIntuition->SetGadgetAttrs((struct Gadget *)gadget[GID_THROTTLESET],window[WID_MAIN],NULL,GA_Disabled,!code,TAG_DONE);
 								throttleptr=code;
 								break;
 							case GID_THROTTLESET:
@@ -1111,7 +1117,7 @@ DBUG("  sel=%ld  nodes=%ld\n",res,res_totnode);
 								break;
 // Game Settings
 							case GID_EXE:
-								res = IIntuition->IDoMethod((Object *)gadget[GID_EXE],GFILE_REQUEST,window[WID_MAIN]);
+								res = IIntuition->IDoMethod(gadget[GID_EXE],GFILE_REQUEST,window[WID_MAIN]);
 								if(res) {
 									BPTR seglist;
 									IIntuition->GetAttr(GETFILE_FullFile, gadget[GID_EXE], (uint32*)&res_str);
@@ -1120,14 +1126,16 @@ DBUG("  sel=%ld  nodes=%ld\n",res,res_totnode);
 									// Check if using old VBA -> enables 'YUV Mode' gadget
 									if( (seglist=IDOS->LoadSeg(res_str)) ) {
 										STRPTR str_ver;
+//DBUG("  [GID_EXE] 0x%08lx\n",seglist);
 										IDOS->GetSegListInfoTags(seglist, GSLI_VersionString,&str_ver, TAG_DONE);
-										IIntuition->SetAttrs(gadget[GID_YUV], GA_Disabled,str_ver? TRUE : FALSE,  CHOOSER_Selected,str_ver? 0 : yuvptr , TAG_DONE);
+										IIntuition->SetAttrs(gadget[GID_YUV], GA_Disabled,str_ver? TRUE : FALSE, CHOOSER_Selected,str_ver? 0 : yuvptr , TAG_DONE);
+										IIntuition->RefreshSetGadgetAttrs((struct Gadget *)gadget[GID_MUTE], window[WID_MAIN], NULL, GA_Disabled,str_ver? FALSE : TRUE, TAG_DONE);
 										IDOS->UnLoadSeg(seglist);
 									}
 								}
 								break;
-							case GID_GAME:
-								res = IIntuition->IDoMethod((Object *)gadget[GID_GAME],GFILE_REQUEST,window[WID_MAIN]);
+							case GID_GAME: // it's a drawer requester
+								res = IIntuition->IDoMethod(gadget[GID_GAME],GFILE_REQUEST,window[WID_MAIN]);
 								if(res) {
 									//IIntuition->GetAttrs(gadget[GID_GAME],GETFILE_FullFile, &gamefile, TAG_DONE);
 									IIntuition->GetAttr(GETFILE_Drawer, gadget[GID_GAME], (uint32*)&res_str);
@@ -1138,7 +1146,7 @@ DBUG("  sel=%ld  nodes=%ld\n",res,res_totnode);
 								}
 								break;
 							case GID_BIOS:
-								res = IIntuition->IDoMethod((Object *)gadget[GID_BIOS],GFILE_REQUEST,window[WID_MAIN]);
+								res = IIntuition->IDoMethod(gadget[GID_BIOS],GFILE_REQUEST,window[WID_MAIN]);
 								if(res) {
 									IIntuition->GetAttr(GETFILE_FullFile, gadget[GID_BIOS], (uint32*)&res_str);
 									IUtility->Strlcpy(biosfile, res_str, MAX_FULLFILEPATH);
@@ -1167,15 +1175,19 @@ DBUG("  sel=%ld  nodes=%ld\n",res,res_totnode);
 									}*/
 								break;
 							case GID_IPSFILE:
-								IIntuition->IDoMethod((Object *)gadget[GID_IPSFILE],GFILE_REQUEST ,window[WID_MAIN]);
+								IIntuition->IDoMethod(gadget[GID_IPSFILE],GFILE_REQUEST ,window[WID_MAIN]);
 								IIntuition->GetAttr(GETFILE_FullFile, gadget[GID_IPSFILE], (uint32*)&res_str);
 								IUtility->Strlcpy(ipsfile, res_str, MAX_FULLFILEPATH);
 								IIntuition->RefreshGadgets((struct Gadget *)gadget[GID_IPSFILE],window[WID_MAIN],NULL);
 								break;
 							case GID_RTC:
-								if (code==TRUE)	rtcptr=1;
-								else				rtcptr=0;
+								rtcptr = code? 1 : 0;
+								//if (code==TRUE)	rtcptr=1;
+								//else				rtcptr=0;
 								break;
+case GID_MUTE:
+	muteptr = code? 1 : 0;
+	break;
 							case GID_GAMEPAD_BTN:
 DBUG("  [GID_GAMEPAD_BTN]\n",NULL);
 								openGamepadWin(); // open gamepad window
@@ -1288,6 +1300,9 @@ DBUG("[GID_SAVECONF]\n",NULL);
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
 								                IPrefsObjects->PrefsString(NULL,NULL,ALPOSTR_AllocSetString,ipsfile,TAG_DONE),
 								                "ips File");
+IPrefsObjects->DictSetObjectForKey(VBAPrefs,
+                IPrefsObjects->PrefsNumber(NULL,NULL,ALPONUM_AllocSetLong,muteptr,TAG_DONE),
+                "Mute Audio");
 								IPrefsObjects->DictSetObjectForKey(VBAPrefs,
 								                IPrefsObjects->PrefsString(NULL,NULL,ALPOSTR_AllocSetString,gamefile,TAG_DONE),
 								                "Game File");

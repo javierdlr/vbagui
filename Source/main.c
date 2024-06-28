@@ -27,13 +27,14 @@
 **
 **	V1.08 -. jabierdlr@gmail.com (with permission from Vicente 'Ami603' Gimeno):
 **		[2024.06.11] Code reworked and changed GUI layout.
-**		[2024.06.12] Updated to use CATCOMP for building localization sources.
+**		[2024.06.12] Updated to use CATCOMP for building localization.
 **		             Changed pages/choosers to use lists instead of arrays.
 **		             Iconification uses vbagui icon.
 **		[2024.06.15] Added listbrowser for games list and changed gamefile requester
 **		             to select/show only drawers.
 **		[2024.06.17] Added gamepad settings window et al. [https://www.ngemu.com/threads/baffling-joystick-configuration-problem.28555/]
 **		[2024.06.19] Added full keyboard handling in listbrowser.
+**		[2024.06.26] Added 'Mute Audio" to GUI and XML.
 */
 
 #include <proto/exec.h>
@@ -139,7 +140,7 @@ int videoptr,yuvptr,filterptr;
 int fskipptr,fskipvalue;
 int throttleptr,throttlevalue;
 int ifbptr,fsizeptr,pwiptr;
-int rtcptr,mmxptr,ipsptr;
+int rtcptr,mmxptr,ipsptr,muteptr;
 int sesptr,savetypeptr;
 
 int port,agbptr,verboseptr,debugptr,gdbptr;
@@ -161,7 +162,9 @@ struct MsgPort *ai_port;
 */
 void parse_commandline(void)
 {
-	STRPTR vidbuffer,gamebuffer,buffer, fskipbuff, throttlebuff,debugbuffer,gdbbuffer;
+	uint32 res_val;
+	STRPTR vidbuffer,gamebuffer,buffer, fskipbuff, throttlebuff,debugbuffer,gdbbuffer,
+	       muteaudio = NULL;
 
 	if (fskipptr==1)		fskipbuff = IUtility->ASPrintf("%s%ld ",fskip[fskipptr],fskipvalue);
 	else				fskipbuff = IUtility->ASPrintf("%s ",fskip[fskipptr]);
@@ -176,9 +179,13 @@ void parse_commandline(void)
 		char fs_W[] = " --sdl2wfd";
 		if(TT_low_sys==FALSE  ||  video[videoptr]!=4) { fs_W[0] = '\0'; }
 */
+	// Mute audio (only VBA +V1.8.0)
+	IIntuition->GetAttr(GA_Disabled, gadget[GID_MUTE], &res_val); // disabled -> V1.8.0;  enbaled -> "old" v1.7.2
+DBUG("  res_val %ld [GIDY_UV] %ld\n",res_val,muteptr);
+	if(res_val==0  &&  muteptr==1) { muteaudio = IUtility->ASPrintf("--mute "); }
 
 	vidbuffer = IUtility->ASPrintf("%s%s%s%s%s%s%s%s",video[videoptr],yuv[yuvptr],filter[filterptr],fskipbuff,throttlebuff,ifb[ifbptr],pwi[pwiptr],sspeed[sesptr]);
-	gamebuffer = IUtility->ASPrintf("%s%s%s%s\"%s\"",fsize[fsizeptr],savetype[savetypeptr],""/*mmxen[mmxptr]*/,rtcen[rtcptr],romfile_sel);//gamefile);
+	gamebuffer = IUtility->ASPrintf("%s%s%s%s\"%s\"",fsize[fsizeptr],savetype[savetypeptr],muteaudio/*mmxen[mmxptr]*/,rtcen[rtcptr],romfile_sel);//gamefile);
 	debugbuffer = IUtility->ASPrintf("%s %s %s %s",agbprt[agbptr],verbose[verboseptr],debug[debugptr],gdbbuffer);
 	if (debugptr)		buffer = IUtility->ASPrintf("%s %s%s %s",exefile,vidbuffer,gamebuffer,debugbuffer);
 	else				buffer = IUtility->ASPrintf("%s %s%s",exefile,vidbuffer,gamebuffer);
@@ -197,6 +204,7 @@ DBUG("%s\n",buffer);
 	IExec->FreeVec(fskipbuff);
 	IExec->FreeVec(debugbuffer);
 	IExec->FreeVec(gdbbuffer);
+	IExec->FreeVec(muteaudio);
 }
 
 /*
@@ -269,6 +277,7 @@ ipsfile = (STRPTR)IExec->AllocVecTags(MAX_FULLFILEPATH, AVT_ClearWithValue,0, TA
 		rtcptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "RTC", 0);
 		mmxptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "MMX", 0);
 		ipsptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "IPS", 0);
+muteptr = IPrefsObjects->DictGetIntegerForKey(VBAPrefs, "Mute Audio", 0);
 //		exefile =(STRPTR)IPrefsObjects->DictGetStringForKey(VBAPrefs, "Executable", "VisualBoyAdvance");
 //		biosfile = (STRPTR)IPrefsObjects->DictGetStringForKey(VBAPrefs, "Bios File", NULL);
 //		ipsfile = (STRPTR)IPrefsObjects->DictGetStringForKey(VBAPrefs, "ips File", NULL);
